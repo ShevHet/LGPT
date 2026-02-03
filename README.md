@@ -48,3 +48,22 @@
 
 
 
+## Week 2 — HTTP/REST cheat sheet
+
+### Methods
+- GET — read data
+- POST — create
+- PUT — replace
+- PATCH — partial update
+- DELETE — delete
+
+### Status codes used in this project
+- 200 OK — success with response body
+- 201 Created — resource created (POST)
+- 204 No Content — success without body (DELETE/PUT)
+- 400 Bad Request — validation errors
+- 404 Not Found — resource not found
+
+
+
+
