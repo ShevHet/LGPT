@@ -35,4 +35,28 @@ public class TasksController : ControllerBase
         var dto = new TaskDto { Id = task.Id, Title = task.Title, IsDone = task.IsDone };
         return Ok(dto); // 200
     }
+
+    [HttpPost]
+    public ActionResult<TaskDto> Create([FromBody] CreateTaskDto dto)
+    {
+        // dto already validated automatically because of [ApiController]
+        var newId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
+
+        var task = new TaskItem
+        {
+            Id = newId,
+            Title = dto.Title,
+            IsDone = false
+        };
+
+        _tasks.Add(task);
+
+        var result = new TaskDto { Id = task.Id, Title = task.Title, IsDone = task.IsDone };
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = result.Id },
+            result
+        ); // 201 + Location header
+    }
 }
