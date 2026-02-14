@@ -59,4 +59,28 @@ public class TasksController : ControllerBase
             result
         ); // 201 + Location header
     }
+
+    [HttpPut("{id:int}")]
+    public ActionResult Update(int id, [FromBody] UpdateTaskDto dto)
+    {
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+
+        if ( task == null ) return NotFound();
+        
+        task.Title = dto.Title;
+        task.IsDone = dto.IsDone;
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    public ActionResult Delete(int id)
+    {
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+
+        if ( task == null ) return NotFound();
+
+        _tasks.Remove(task);
+        return NoContent();
+    }
 }
