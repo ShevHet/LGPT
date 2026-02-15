@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Api.Models;
+using TaskTracker.Api.Services;
 
 namespace TaskTracker.Api.Controllers;
 
@@ -8,12 +9,12 @@ namespace TaskTracker.Api.Controllers;
 [Route("tasks")]
 public class TasksController : ControllerBase
 {
-    // InMemory "database"
-    private static readonly List<TaskItem> _tasks = new()
+    private readonly ITaskService _service;
+
+    public TasksController(ITaskService service)
     {
-        new TaskItem { Id = 1, Title = "Learn HTTP basics", IsDone = false },
-        new TaskItem { Id = 2, Title = "Open Swagger UI", IsDone = true }
-    };
+        _service = service;
+    }
 
     /// <summary>Get all tasks</summary>
     /// <remarks>Returns all tasks currently stored in memory.</remarks>
@@ -22,12 +23,8 @@ public class TasksController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<List<TaskDto>> GetAll()
-    {
-        var result = _tasks
-            .Select(t => new TaskDto { Id = t.Id, Title = t.Title, IsDone = t.IsDone })
-            .ToList();
-
-        return Ok(result); // 200
+    {       
+        return Ok(_service.GetAll()); // 200
     }
 
     //// <summary>Get a task by id</summary>
@@ -40,12 +37,9 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult<TaskDto> GetById(int id)
     {
-        var task = _tasks.FirstOrDefault(t => t.Id == id);
-        if (task == null)
-            return NotFound(); // 404
-
-        var dto = new TaskDto { Id = task.Id, Title = task.Title, IsDone = task.IsDone };
-        return Ok(dto); // 200
+        var task = _service.GetById(id);
+        if (task is null) return NotFound();
+        return Ok(task); // 200
     }
 
     /// <summary>Create a new task</summary>
@@ -58,25 +52,9 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult<TaskDto> Create([FromBody] CreateTaskDto dto)
     {
-        // dto already validated automatically because of [ApiController]
-        var newId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
+        var created = _service.Create(dto.Title);
 
-        var task = new TaskItem
-        {
-            Id = newId,
-            Title = dto.Title,
-            IsDone = false
-        };
-
-        _tasks.Add(task);
-
-        var result = new TaskDto { Id = task.Id, Title = task.Title, IsDone = task.IsDone };
-
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = result.Id },
-            result
-        ); // 201 + Location header
+        return CreatedAtAction(nameof(GetById), new {id = created.Id}, created);
     }
 
     /// <summary>Update an existing task (full update)</summary>
@@ -91,12 +69,8 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult Update(int id, [FromBody] UpdateTaskDto dto)
     {
-        var task = _tasks.FirstOrDefault(t => t.Id == id);
-
-        if ( task == null ) return NotFound();
-        
-        task.Title = dto.Title;
-        task.IsDone = dto.IsDone;
+        var updated = _service.Update(id, dto.Title, dto.IsDone);
+        if(!updated) return NotFound();
 
         return NoContent();
     }
@@ -110,11 +84,10 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult Delete(int id)
     {
-        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        var deleted = _service.Delete(id);
+        if (!deleted)
+            return NotFound();
 
-        if ( task == null ) return NotFound();
-
-        _tasks.Remove(task);
         return NoContent();
     }
 }
