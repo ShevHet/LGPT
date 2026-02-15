@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Reflection;
+using TaskTracker.Api.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 
+builder.Services.AddSingleton<ITaskService, InMemoryTaskService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
