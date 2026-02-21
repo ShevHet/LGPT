@@ -1,14 +1,10 @@
-using System.Net.Sockets;
 using System.Reflection;
 using TaskTracker.Api.Services;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-
-builder.Services.AddSingleton<ITaskService, InMemoryTaskService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -17,14 +13,14 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(xmlPath);
 });
 
+builder.Services.AddScoped<ITaskService, TaskService>();
+
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
