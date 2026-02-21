@@ -13,9 +13,10 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(xmlPath);
 });
 
-builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<ITaskService, InMemoryTaskService>();
 
 var app = builder.Build();
+app.UseMiddleware<TaskTracker.Api.Middleware.RequestLoggingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
