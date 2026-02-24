@@ -1,9 +1,34 @@
 using System.Reflection;
 using TaskTracker.Api.Services;
+using TaskTracker.Api.Errors;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var traceId = context.HttpContext.TraceIdentifier;
+
+            var errors = context.ModelState
+            ( 
+                 .Where(x => x.Value?.Errors.Count > 0)
+                 .ToDictionary(
+                     k => k.Key,
+                     v => v.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+            );
+
+            var payload = new ApiErrorsResponse(
+                TraceId: traceId,
+                Message: "Validation failed",
+                Errors: errors
+            );
+
+        };
+        
+    }
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

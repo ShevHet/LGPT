@@ -38,7 +38,14 @@ public class TasksController : ControllerBase
     public ActionResult<TaskDto> GetById(int id)
     {
         var task = _service.GetById(id);
-        if (task is null) return NotFound();
+        if (task is null)
+        {
+            return NotFound(new ApiErrorResponse(
+                TraceId: HttpContext.TraceIdentifier,
+                Message: $"Task with id '{id}' not found",
+                Errors: null
+            ));
+        }
         return Ok(task); // 200
     }
 
@@ -70,7 +77,14 @@ public class TasksController : ControllerBase
     public ActionResult Update(int id, [FromBody] UpdateTaskDto dto)
     {
         var updated = _service.Update(id, dto.Title, dto.IsDone);
-        if(!updated) return NotFound();
+        if(!updated)
+        {
+            return NotFound(new ApiErrorResponse(
+                TraceId: HttpContext.TraceIdentifier,
+                Message: $"Task with id '{id}' not found",
+                Errors: null
+            ));
+        }
 
         return NoContent();
     }
@@ -86,7 +100,13 @@ public class TasksController : ControllerBase
     {
         var deleted = _service.Delete(id);
         if (!deleted)
-            return NotFound();
+        {
+            return NotFound(new ApiErrorResponse(
+                TraceId: HttpContext.TraceIdentifier,
+                Message: $"Task with id '{id}' not found",
+                Errors: null
+            ));
+        }
 
         return NoContent();
     }
