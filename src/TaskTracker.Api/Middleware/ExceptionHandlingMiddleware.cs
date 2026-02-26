@@ -27,6 +27,17 @@ public sealed class ExceptionHandlingMiddleware
             _logger.LogError(ex, "Unhandled exception. TraceId={TraceId}", traceId);
             
             var(statusCode, message, errors) = MapException(ex);
+
+            context.Response.StatusCode = statusCode;
+            context.Response.ContentType = "application/json";
+
+            var payload = new ApiErrorResponse(
+                TraceId: traceId,
+                Message: message,
+                Errors: errors
+            );
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
         }
     }
 

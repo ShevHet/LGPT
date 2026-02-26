@@ -1,15 +1,23 @@
 using TaskTracker.Api.Dtos;
 using TaskTracker.Api.Models;
+using TaskTracker.Api.Options;
 
 namespace TaskTracker.Api.Services;
 
 public class InMemoryTaskService : ITaskService
 {
+    private readonly TaskTrackerOption _options;
+
     private static readonly List<TaskItem> _tasks = new()
     {
         new TaskItem { Id = 1, Title = "Learn HTTP basics", IsDone = false },
         new TaskItem { Id = 2, Title = "Open Swagger UI", IsDone = true }
     };
+
+    public InMemoryTaskService(TaskTrackerOption options)
+    {
+        _options = options;
+    }
 
     public List<TaskDto> GetAll() =>
         _tasks.Select(t => new TaskDto { Id = t.Id, Title = t.Title, IsDone = t.IsDone }).ToList();
@@ -22,9 +30,18 @@ public class InMemoryTaskService : ITaskService
 
     public TaskDto Create(string title)
     {
+        if(_tasks.Count >= _options.MaxTasksLimit)
+            throw new ArgumentException($"Tasks limit reached: {_options.MaxTasksLimit}", nameof(title))
+
+        if (!string.IsNullOrWhiteSpace(_options.DefaultTitlePrefix))
+            title = $"{_options.DefaultTitlePrefix} {title}";
+
         var newId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
+        
         var task = new TaskItem { Id = newId, Title = title, IsDone = false };
+        
         _tasks.Add(task);
+        
         return new TaskDto { Id = newId, Title = title, IsDone = false };
     }
 
