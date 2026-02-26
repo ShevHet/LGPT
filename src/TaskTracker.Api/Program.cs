@@ -27,8 +27,10 @@ builder.Services
             );
 
         };
-        
     }
+
+builder.Services.Configure<TaskTrackerOptions>(
+    builder.Configuration.GetSection(TaskTrackerOptions.SectionName));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
