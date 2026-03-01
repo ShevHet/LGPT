@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Api.Models;
 using TaskTracker.Api.Services;
+using TaskTracker.Api.Errors;
 
 namespace TaskTracker.Api.Controllers;
 
@@ -22,9 +23,9 @@ public class TasksController : ControllerBase
     /// <response code="200">Tasks were returned successfully</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult<List<TaskDto>> GetAll()
+    public async Task<ActionResult<List<TaskDto>>> GetAll(CancellationToken ct)
     {       
-        return Ok(_service.GetAll()); // 200
+        return Ok(await _service.GetAllAsync(ct)); // 200
     }
 
     //// <summary>Get a task by id</summary>
@@ -35,9 +36,9 @@ public class TasksController : ControllerBase
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<TaskDto> GetById(int id)
+    public async Task<ActionResult<TaskDto>> GetById(int id, CancellationToken ct)
     {
-        var task = _service.GetById(id);
+        var task = await _service.GetByIdAsync(id, ct);
         if (task is null)
         {
             return NotFound(new ApiErrorResponse(
@@ -57,9 +58,10 @@ public class TasksController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<TaskDto> Create([FromBody] CreateTaskDto dto)
+    public async Task<ActionResult<TaskDto>> Create([FromBody] CreateTaskDto dto,
+        CancellationToken ct)
     {
-        var created = _service.Create(dto.Title);
+        var created = await _service.CreateAsync(dto.Title,ct);
 
         return CreatedAtAction(nameof(GetById), new {id = created.Id}, created);
     }
@@ -74,9 +76,10 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult Update(int id, [FromBody] UpdateTaskDto dto)
+    public async Task<ActionResult> Update(int id, [FromBody] UpdateTaskDto dto,
+        CancellationToken ct)
     {
-        var updated = _service.Update(id, dto.Title, dto.IsDone);
+        var updated = await _service.UpdateAsync(id, dto.Title, dto.IsDone, ct);
         if(!updated)
         {
             return NotFound(new ApiErrorResponse(
@@ -96,9 +99,9 @@ public class TasksController : ControllerBase
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult Delete(int id)
+    public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        var deleted = _service.Delete(id);
+        var deleted = await _service.DeleteAsync(id, ct);
         if (!deleted)
         {
             return NotFound(new ApiErrorResponse(

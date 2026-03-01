@@ -1,3 +1,5 @@
+using System.Data.Common;
+using Microsoft.Extensions.Options;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Api.Models;
 using TaskTracker.Api.Options;
@@ -6,7 +8,7 @@ namespace TaskTracker.Api.Services;
 
 public class InMemoryTaskService : ITaskService
 {
-    private readonly TaskTrackerOption _options;
+    private readonly TaskTrackerOptions _options;
 
     private static readonly List<TaskItem> _tasks = new()
     {
@@ -14,24 +16,46 @@ public class InMemoryTaskService : ITaskService
         new TaskItem { Id = 2, Title = "Open Swagger UI", IsDone = true }
     };
 
-    public InMemoryTaskService(TaskTrackerOption options)
+    public InMemoryTaskService(IOptions<TaskTrackerOptions> options)
     {
-        _options = options;
+        _options = options.Value;
     }
 
-    public List<TaskDto> GetAll() =>
-        _tasks.Select(t => new TaskDto { Id = t.Id, Title = t.Title, IsDone = t.IsDone }).ToList();
-
-    public TaskDto? GetById(int id)
+    public Task<List<TaskDto>> GetAllAsync(CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+
+        var result = _tasks.Select(t => new TaskDto
+        {
+            Id = t.Id,
+            Title = t.Title,
+            IsDone = t.IsDone
+        }).ToList();
+
+        return Task.FromResult(result);
+    }
+
+
+    public Task<TaskDto?> GetByIdAsync(int id, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
         var task = _tasks.FirstOrDefault(t => t.Id == id);
-        return task == null ? null : new TaskDto { Id = task.Id, Title = task.Title, IsDone = task.IsDone };
+
+        TaskDto? dto = task == null
+            ? null
+            : new TaskDto { Id = task.Id, Title = task.Title, IsDone = task.IsDone };
+
+        return Task.FromResult(dto);
     }
 
-    public TaskDto Create(string title)
+
+    public Task<TaskDto> CreateAsync(string title, CancellationToken ct)
     {
-        if(_tasks.Count >= _options.MaxTasksLimit)
-            throw new ArgumentException($"Tasks limit reached: {_options.MaxTasksLimit}", nameof(title))
+        ct.ThrowIfCancellationRequested();
+
+        if (_tasks.Count >= _options.MaxTasksLimit)
+            throw new ArgumentException($"Tasks limit reached: {_options.MaxTasksLimit}", nameof(title));
 
         if (!string.IsNullOrWhiteSpace(_options.DefaultTitlePrefix))
             title = $"{_options.DefaultTitlePrefix} {title}";
@@ -41,27 +65,37 @@ public class InMemoryTaskService : ITaskService
         var task = new TaskItem { Id = newId, Title = title, IsDone = false };
         
         _tasks.Add(task);
-        
-        return new TaskDto { Id = newId, Title = title, IsDone = false };
+
+        var result = new TaskDto
+        {
+            Id = task.Id,
+            Title = task.Title,
+            IsDone = task.IsDone
+        };
+        return Task.FromResult(result);
     }
 
-    public bool Update(int id, string title, bool isDone)
+    public Task<bool> UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+
         var task = _tasks.FirstOrDefault(t => t.Id == id);
 
-        if (task == null) return false;
+        if (task == null) return Task.FromResult(false);
 
         task.Title = title;
         task.IsDone = isDone;
-        return true;
+        return Task.FromResult(true);
     }
 
-    public bool Delete(int id)
+    public  Task<bool> DeleteAsync(int id, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+
         var task = _tasks.FirstOrDefault(t=> t.Id == id);
-        if(task == null) return false;
+        if(task == null) return Task.FromResult(false);
 
         _tasks.Remove(task);
-        return true;
+        return Task.FromResult(true);
     }
 }
