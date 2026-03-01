@@ -8,7 +8,7 @@ public sealed class ExceptionHandlingMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequesDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -46,9 +46,9 @@ public sealed class ExceptionHandlingMiddleware
     {
         if(ex is ArgumentException arg)
         {
-            var field = arg.ParamName ?? "request"
+            var field = arg.ParamName ?? "request";
             return (
-                StatusCodes.StatusCode400BadRequest,
+                StatusCodes.Status400BadRequest,
                 "Validation Errors",
                 new Dictionary<string, string[]>
                 {

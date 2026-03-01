@@ -1,3 +1,6 @@
+namespace TaskTracker.Api.Options;
+
+
 public sealed class TaskTrackerOptions
 {
     public const string SectionName = "TaskTracker";
