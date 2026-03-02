@@ -1,5 +1,6 @@
 using System.Text.Json;
 using TaskTracker.Api.Errors;
+using TaskTracker.Api.Exceptions;
 
 namespace TaskTracker.Api.Middleware;
 
@@ -44,23 +45,11 @@ public sealed class ExceptionHandlingMiddleware
     public (int statusCode, string message, Dictionary<string, string[]>? errors)
         MapException(Exception ex)
     {
-        if(ex is ArgumentException arg)
+        if(ex is NotFoundException nf)
         {
-            var field = arg.ParamName ?? "request";
-            return (
-                StatusCodes.Status400BadRequest,
-                "Validation Errors",
-                new Dictionary<string, string[]>
-                {
-                    [field] = new[] { arg.Message }
-                }
-            );
+            return (StatusCodes.Status404NotFound, nf.Message, null);
         }
 
-        return (
-            StatusCodes.Status500InternalServerError,
-            "Unexpected error",
-            null
-        );
+        return (StatusCodes.Status500InternalServerError, "Unexpected error", null)
     }
 }

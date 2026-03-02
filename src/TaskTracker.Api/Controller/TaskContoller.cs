@@ -39,14 +39,7 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<TaskDto>> GetById(int id, CancellationToken ct)
     {
         var task = await _service.GetByIdAsync(id, ct);
-        if (task is null)
-        {
-            return NotFound(new ApiErrorResponse(
-                TraceId: HttpContext.TraceIdentifier,
-                Message: $"Task with id '{id}' not found",
-                Errors: null
-            ));
-        }
+        
         return Ok(task); // 200
     }
 
@@ -79,16 +72,8 @@ public class TasksController : ControllerBase
     public async Task<ActionResult> Update(int id, [FromBody] UpdateTaskDto dto,
         CancellationToken ct)
     {
-        var updated = await _service.UpdateAsync(id, dto.Title, dto.IsDone, ct);
-        if(!updated)
-        {
-            return NotFound(new ApiErrorResponse(
-                TraceId: HttpContext.TraceIdentifier,
-                Message: $"Task with id '{id}' not found",
-                Errors: null
-            ));
-        }
-
+        await _service.UpdateAsync(id, dto.Title, dto.IsDone, ct);
+        
         return NoContent();
     }
 
@@ -101,15 +86,7 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        var deleted = await _service.DeleteAsync(id, ct);
-        if (!deleted)
-        {
-            return NotFound(new ApiErrorResponse(
-                TraceId: HttpContext.TraceIdentifier,
-                Message: $"Task with id '{id}' not found",
-                Errors: null
-            ));
-        }
+        await _service.DeleteAsync(id, ct);
 
         return NoContent();
     }
