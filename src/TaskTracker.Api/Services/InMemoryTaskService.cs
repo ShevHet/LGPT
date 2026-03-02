@@ -1,8 +1,8 @@
-using System.Data.Common;
 using Microsoft.Extensions.Options;
 using TaskTracker.Api.Dtos;
-using TaskTracker.Api.Models;
+using TaskTracker.Domain.Models;
 using TaskTracker.Api.Options;
+using TaskTracker.Api.Exceptions;
 
 namespace TaskTracker.Api.Services;
 
@@ -21,81 +21,107 @@ public class InMemoryTaskService : ITaskService
         _options = options.Value;
     }
 
-    public Task<List<TaskDto>> GetAllAsync(CancellationToken ct)
+    public async Task<List<TaskDto>> GetAllAsync(CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
-        var result = _tasks.Select(t => new TaskDto
+        return _tasks.Select(t => new TaskDto
         {
             Id = t.Id,
             Title = t.Title,
             IsDone = t.IsDone
         }).ToList();
-
-        return Task.FromResult(result);
     }
 
-
-    public Task<TaskDto?> GetByIdAsync(int id, CancellationToken ct)
+    public async Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
+
+        ValidateId(id);
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
+        if (task is null)
+            throw new NotFoundException($"Task with id={id} was not found.");
 
-        TaskDto? dto = task == null
-            ? null
-            : new TaskDto { Id = task.Id, Title = task.Title, IsDone = task.IsDone };
-
-        return Task.FromResult(dto);
-    }
-
-
-    public Task<TaskDto> CreateAsync(string title, CancellationToken ct)
-    {
-        ct.ThrowIfCancellationRequested();
-
-        if (_tasks.Count >= _options.MaxTasksLimit)
-            throw new ArgumentException($"Tasks limit reached: {_options.MaxTasksLimit}", nameof(title));
-
-        if (!string.IsNullOrWhiteSpace(_options.DefaultTitlePrefix))
-            title = $"{_options.DefaultTitlePrefix} {title}";
-
-        var newId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
-        
-        var task = new TaskItem { Id = newId, Title = title, IsDone = false };
-        
-        _tasks.Add(task);
-
-        var result = new TaskDto
+        return new TaskDto
         {
             Id = task.Id,
             Title = task.Title,
             IsDone = task.IsDone
         };
-        return Task.FromResult(result);
     }
 
-    public Task<bool> UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
+    public async Task<TaskDto> CreateAsync(string title, CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
-        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        ValidateTitle(title);
 
-        if (task == null) return Task.FromResult(false);
+        if (_tasks.Count >= _options.MaxTasksLimit)
+            throw new ValidationException($"Tasks limit reached: {_options.MaxTasksLimit}");
+
+        if (!string.IsNullOrWhiteSpace(_options.DefaultTitlePrefix))
+            title = $"{_options.DefaultTitlePrefix} {title}";
+
+        var newId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
+
+        var task = new TaskItem { Id = newId, Title = title, IsDone = false };
+
+        _tasks.Add(task);
+
+        return new TaskDto
+        {
+            Id = task.Id,
+            Title = task.Title,
+            IsDone = task.IsDone
+        };
+    }
+
+    public async Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
+    {
+        await Task.Yield();
+        ct.ThrowIfCancellationRequested();
+
+        ValidateId(id);
+        ValidateTitle(title);
+
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        if (task == null)
+            throw new NotFoundException($"Task with id={id} was not found.");
 
         task.Title = title;
         task.IsDone = isDone;
-        return Task.FromResult(true);
     }
 
-    public  Task<bool> DeleteAsync(int id, CancellationToken ct)
+    public async Task DeleteAsync(int id, CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
-        var task = _tasks.FirstOrDefault(t=> t.Id == id);
-        if(task == null) return Task.FromResult(false);
+        ValidateId(id);
+
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        if (task == null)
+            throw new NotFoundException($"Task with id={id} was not found.");
 
         _tasks.Remove(task);
-        return Task.FromResult(true);
+    }
+
+    private static void ValidateId(int id)
+    {
+        if (id <= 0)
+            throw new ValidationException("Id must be a positive number.");
+    }
+
+    private static void ValidateTitle(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ValidationException("Title must not be empty.");
+
+        if (title.Length < 3)
+            throw new ValidationException("Title minimum length is 3.");
     }
 }
