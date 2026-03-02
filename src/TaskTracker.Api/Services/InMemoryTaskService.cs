@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Api.Models;
 using TaskTracker.Api.Options;
+using TaskTracker.Api.Exceptions;
 
 namespace TaskTracker.Api.Services;
 
@@ -36,15 +37,21 @@ public class InMemoryTaskService : ITaskService
     }
 
 
-    public Task<TaskDto?> GetByIdAsync(int id, CancellationToken ct)
+    public Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
 
+        ValidateId(id);
+       
         var task = _tasks.FirstOrDefault(t => t.Id == id);
-
-        TaskDto? dto = task == null
-            ? null
-            : new TaskDto { Id = task.Id, Title = task.Title, IsDone = task.IsDone };
+        if(task is null) 
+            throw new NotFoundException($"Task with id={id} was not found.");
+        var dto = new TaskDto
+        {
+            Id = task.Id,
+            Title = task.Title,
+            IsDone = task.IsDone
+        };
 
         return Task.FromResult(dto);
     }
@@ -54,8 +61,10 @@ public class InMemoryTaskService : ITaskService
     {
         ct.ThrowIfCancellationRequested();
 
+        ValidateTitle(title);
+
         if (_tasks.Count >= _options.MaxTasksLimit)
-            throw new ArgumentException($"Tasks limit reached: {_options.MaxTasksLimit}", nameof(title));
+            throw new ValidationException($"Tasks limit reached: {_options.MaxTasksLimit}");
 
         if (!string.IsNullOrWhiteSpace(_options.DefaultTitlePrefix))
             title = $"{_options.DefaultTitlePrefix} {title}";
@@ -75,27 +84,50 @@ public class InMemoryTaskService : ITaskService
         return Task.FromResult(result);
     }
 
-    public Task<bool> UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
+    public Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+
+        ValidateId(id);
+        ValidateTitle(title);
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
 
-        if (task == null) return Task.FromResult(false);
+        if (task == null) 
+             throw new NotFoundException($"Task with id={id} was not found.");
 
         task.Title = title;
         task.IsDone = isDone;
-        return Task.FromResult(true);
+
+        return Task.CompletedTask;
     }
 
-    public  Task<bool> DeleteAsync(int id, CancellationToken ct)
+    public  Task DeleteAsync(int id, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        
+        ValidateId(id);
 
         var task = _tasks.FirstOrDefault(t=> t.Id == id);
-        if(task == null) return Task.FromResult(false);
+        if(task == null) 
+            throw new NotFoundException($"Task with id={id} was not found.");
 
         _tasks.Remove(task);
-        return Task.FromResult(true);
+        return Task.CompletedTask;
+    }
+
+    private static void ValidateId(int id)
+    {
+        if(id <= 0)
+            throw new ValidationException("Id must be a positive number.");
+    }
+
+    private static void ValidateTitle(string? title)
+    {
+        if(string.IsNullOrWhiteSpace(title))
+            throw new ValidationException("Title must not be empty.");
+        
+        if (title.Length >= 3)
+            throw new ValidationException("Минимальная длина Title - 3.");
     }
 }
