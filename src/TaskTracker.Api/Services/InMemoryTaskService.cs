@@ -35,6 +35,8 @@ public class InMemoryTaskService : ITaskService
     }
 
     public async Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
+
+    public Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
     {
         await Task.Yield();
         ct.ThrowIfCancellationRequested();
@@ -44,6 +46,16 @@ public class InMemoryTaskService : ITaskService
         var task = _tasks.FirstOrDefault(t => t.Id == id);
         if (task is null)
             throw new NotFoundException($"Task with id={id} was not found.");
+       
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        if(task is null) 
+            throw new NotFoundException($"Task with id={id} was not found.");
+        var dto = new TaskDto
+        {
+            Id = task.Id,
+            Title = task.Title,
+            IsDone = task.IsDone
+        };
 
         return new TaskDto
         {
@@ -81,6 +93,7 @@ public class InMemoryTaskService : ITaskService
     }
 
     public async Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
+    public Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
     {
         await Task.Yield();
         ct.ThrowIfCancellationRequested();
@@ -97,9 +110,24 @@ public class InMemoryTaskService : ITaskService
     }
 
     public async Task DeleteAsync(int id, CancellationToken ct)
+
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+
+        if (task == null) 
+             throw new NotFoundException($"Task with id={id} was not found.");
+
+        task.Title = title;
+        task.IsDone = isDone;
+
+        return Task.CompletedTask;
+    }
+
+    public  Task DeleteAsync(int id, CancellationToken ct)
     {
         await Task.Yield();
         ct.ThrowIfCancellationRequested();
+        
+        ValidateId(id);
 
         ValidateId(id);
 
@@ -108,11 +136,18 @@ public class InMemoryTaskService : ITaskService
             throw new NotFoundException($"Task with id={id} was not found.");
 
         _tasks.Remove(task);
+        var task = _tasks.FirstOrDefault(t=> t.Id == id);
+        if(task == null) 
+            throw new NotFoundException($"Task with id={id} was not found.");
+
+        _tasks.Remove(task);
+        return Task.CompletedTask;
     }
 
     private static void ValidateId(int id)
     {
         if (id <= 0)
+        if(id <= 0)
             throw new ValidationException("Id must be a positive number.");
     }
 
@@ -123,5 +158,10 @@ public class InMemoryTaskService : ITaskService
 
         if (title.Length < 3)
             throw new ValidationException("Title minimum length is 3.");
+        if(string.IsNullOrWhiteSpace(title))
+            throw new ValidationException("Title must not be empty.");
+        
+        if (title.Length >= 3)
+            throw new ValidationException("Ìèíèìàëüíàÿ äëèíà Title - 3.");
     }
 }

@@ -59,5 +59,11 @@ public sealed class ExceptionHandlingMiddleware
         
 
         return (StatusCodes.Status500InternalServerError, "Unexpected error", null);
+        if(ex is NotFoundException nf)
+        {
+            return (StatusCodes.Status404NotFound, nf.Message, null);
+        }
+
+        return (StatusCodes.Status500InternalServerError, "Unexpected error", null)
     }
 }
