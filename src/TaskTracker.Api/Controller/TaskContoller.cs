@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskTracker.Api.Dtos;
-using TaskTracker.Api.Models;
 using TaskTracker.Api.Services;
 using TaskTracker.Api.Errors;
 

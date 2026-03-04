@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace TaskTracker.Api.Dtos;
 
 public class UpdateTaskDto

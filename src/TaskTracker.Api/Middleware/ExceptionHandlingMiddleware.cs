@@ -24,10 +24,13 @@ public sealed class ExceptionHandlingMiddleware
         catch(Exception ex)
         {
             var traceId = context.TraceIdentifier;
-
-            _logger.LogError(ex, "Unhandled exception. TraceId={TraceId}", traceId);
-            
             var(statusCode, message, errors) = MapException(ex);
+
+            if(statusCode >= 500)
+                _logger.LogError(ex, "Unhandled exception. TraceId={TraceId}", traceId);
+
+            else
+                _logger.LogWarning(ex, "Handled exception. TraceId={TraceId}", traceId);
 
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
@@ -45,6 +48,17 @@ public sealed class ExceptionHandlingMiddleware
     public (int statusCode, string message, Dictionary<string, string[]>? errors)
         MapException(Exception ex)
     {
+        if (ex is OperationCanceledException or TaskCanceledException)
+            return (499, "Request was cancelled by client", null);
+
+        if (ex is ValidationException ve)
+            return (StatusCodes.Status400BadRequest, ve.Message, null); 
+
+        if(ex is NotFoundException nf)        
+            return (StatusCodes.Status404NotFound, nf.Message, null);
+        
+
+        return (StatusCodes.Status500InternalServerError, "Unexpected error", null);
         if(ex is NotFoundException nf)
         {
             return (StatusCodes.Status404NotFound, nf.Message, null);

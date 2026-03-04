@@ -1,7 +1,6 @@
-using System.Data.Common;
 using Microsoft.Extensions.Options;
 using TaskTracker.Api.Dtos;
-using TaskTracker.Api.Models;
+using TaskTracker.Domain.Models;
 using TaskTracker.Api.Options;
 using TaskTracker.Api.Exceptions;
 
@@ -22,26 +21,31 @@ public class InMemoryTaskService : ITaskService
         _options = options.Value;
     }
 
-    public Task<List<TaskDto>> GetAllAsync(CancellationToken ct)
+    public async Task<List<TaskDto>> GetAllAsync(CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
-        var result = _tasks.Select(t => new TaskDto
+        return _tasks.Select(t => new TaskDto
         {
             Id = t.Id,
             Title = t.Title,
             IsDone = t.IsDone
         }).ToList();
-
-        return Task.FromResult(result);
     }
 
+    public async Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
 
     public Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
         ValidateId(id);
+
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        if (task is null)
+            throw new NotFoundException($"Task with id={id} was not found.");
        
         var task = _tasks.FirstOrDefault(t => t.Id == id);
         if(task is null) 
@@ -53,12 +57,17 @@ public class InMemoryTaskService : ITaskService
             IsDone = task.IsDone
         };
 
-        return Task.FromResult(dto);
+        return new TaskDto
+        {
+            Id = task.Id,
+            Title = task.Title,
+            IsDone = task.IsDone
+        };
     }
 
-
-    public Task<TaskDto> CreateAsync(string title, CancellationToken ct)
+    public async Task<TaskDto> CreateAsync(string title, CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
         ValidateTitle(title);
@@ -70,26 +79,37 @@ public class InMemoryTaskService : ITaskService
             title = $"{_options.DefaultTitlePrefix} {title}";
 
         var newId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
-        
+
         var task = new TaskItem { Id = newId, Title = title, IsDone = false };
-        
+
         _tasks.Add(task);
 
-        var result = new TaskDto
+        return new TaskDto
         {
             Id = task.Id,
             Title = task.Title,
             IsDone = task.IsDone
         };
-        return Task.FromResult(result);
     }
 
+    public async Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
     public Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
         ValidateId(id);
         ValidateTitle(title);
+
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        if (task == null)
+            throw new NotFoundException($"Task with id={id} was not found.");
+
+        task.Title = title;
+        task.IsDone = isDone;
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken ct)
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
 
@@ -104,10 +124,18 @@ public class InMemoryTaskService : ITaskService
 
     public  Task DeleteAsync(int id, CancellationToken ct)
     {
+        await Task.Yield();
         ct.ThrowIfCancellationRequested();
         
         ValidateId(id);
 
+        ValidateId(id);
+
+        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        if (task == null)
+            throw new NotFoundException($"Task with id={id} was not found.");
+
+        _tasks.Remove(task);
         var task = _tasks.FirstOrDefault(t=> t.Id == id);
         if(task == null) 
             throw new NotFoundException($"Task with id={id} was not found.");
@@ -118,16 +146,22 @@ public class InMemoryTaskService : ITaskService
 
     private static void ValidateId(int id)
     {
+        if (id <= 0)
         if(id <= 0)
             throw new ValidationException("Id must be a positive number.");
     }
 
     private static void ValidateTitle(string? title)
     {
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ValidationException("Title must not be empty.");
+
+        if (title.Length < 3)
+            throw new ValidationException("Title minimum length is 3.");
         if(string.IsNullOrWhiteSpace(title))
             throw new ValidationException("Title must not be empty.");
         
         if (title.Length >= 3)
-            throw new ValidationException("Минимальная длина Title - 3.");
+            throw new ValidationException("ГЊГЁГ­ГЁГ¬Г Г«ГјГ­Г Гї Г¤Г«ГЁГ­Г  Title - 3.");
     }
 }
