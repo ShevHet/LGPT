@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Options;
+using System.Threading.Tasks;
 using TaskTracker.Api.Dtos;
-using TaskTracker.Domain.Models;
-using TaskTracker.Api.Options;
 using TaskTracker.Api.Exceptions;
+using TaskTracker.Api.Options;
+using TaskTracker.Domain.Models;
 
 namespace TaskTracker.Api.Services;
 
@@ -32,11 +33,9 @@ public class InMemoryTaskService : ITaskService
             Title = t.Title,
             IsDone = t.IsDone
         }).ToList();
-    }
+    }   
 
     public async Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
-
-    public Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
     {
         await Task.Yield();
         ct.ThrowIfCancellationRequested();
@@ -45,11 +44,9 @@ public class InMemoryTaskService : ITaskService
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
         if (task is null)
-            throw new NotFoundException($"Task with id={id} was not found.");
+            throw new NotFoundException($"Task with id={id} was not found.");     
        
-        var task = _tasks.FirstOrDefault(t => t.Id == id);
-        if(task is null) 
-            throw new NotFoundException($"Task with id={id} was not found.");
+           
         var dto = new TaskDto
         {
             Id = task.Id,
@@ -92,29 +89,17 @@ public class InMemoryTaskService : ITaskService
         };
     }
 
-    public async Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
     public Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
     {
-        await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
         ValidateId(id);
         ValidateTitle(title);
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
+
         if (task == null)
             throw new NotFoundException($"Task with id={id} was not found.");
-
-        task.Title = title;
-        task.IsDone = isDone;
-    }
-
-    public async Task DeleteAsync(int id, CancellationToken ct)
-
-        var task = _tasks.FirstOrDefault(t => t.Id == id);
-
-        if (task == null) 
-             throw new NotFoundException($"Task with id={id} was not found.");
 
         task.Title = title;
         task.IsDone = isDone;
@@ -122,25 +107,18 @@ public class InMemoryTaskService : ITaskService
         return Task.CompletedTask;
     }
 
-    public  Task DeleteAsync(int id, CancellationToken ct)
+    public Task DeleteAsync(int id, CancellationToken ct)
     {
-        await Task.Yield();
         ct.ThrowIfCancellationRequested();
         
-        ValidateId(id);
-
-        ValidateId(id);
+        ValidateId(id);        
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
         if (task == null)
             throw new NotFoundException($"Task with id={id} was not found.");
 
         _tasks.Remove(task);
-        var task = _tasks.FirstOrDefault(t=> t.Id == id);
-        if(task == null) 
-            throw new NotFoundException($"Task with id={id} was not found.");
 
-        _tasks.Remove(task);
         return Task.CompletedTask;
     }
 
@@ -163,5 +141,5 @@ public class InMemoryTaskService : ITaskService
         
         if (title.Length >= 3)
             throw new ValidationException("Ìèíèìàëüíàÿ äëèíà Title - 3.");
-    }
+    }    
 }

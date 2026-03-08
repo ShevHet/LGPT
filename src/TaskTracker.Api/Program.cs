@@ -12,10 +12,6 @@ builder.Services
         options.SuppressModelStateInvalidFilter = true;
     });
 
-    .AddControllers(options => options.SuppressModelStateInvalidFilter = true);
-    
-
-
 builder.Services.Configure<TaskTrackerOptions>(
     builder.Configuration.GetSection(TaskTrackerOptions.SectionName));
 
