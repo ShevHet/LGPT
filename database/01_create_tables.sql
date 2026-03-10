@@ -2,7 +2,7 @@ GO
 IF OBJECT_ID(N'dbo.Projects', N'U') IS NULL
 BEGIN
 	CREATE TABLE dbo.Projects
-		(
+	(
 		Id int IDENTITY(1,1) CONSTRAINT PK_Projects PRIMARY KEY,
 		Name nvarchar(200) NOT NULL,
 		Description nvarchar(1000) NULL,
