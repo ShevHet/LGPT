@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTracker.Api", "src\Task
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTracker.Tests", "tests\TaskTracker.Tests\TaskTracker.Tests.csproj", "{7510E0E9-3691-45EE-8D42-D3C2D01B9039}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTracker.Infrastructure", "src\TaskTracker.Infrastructure\TaskTracker.Infrastructure.csproj", "{CA7B2916-07EF-4A06-A38A-23317FE60CA2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,18 @@ Global
 		{7510E0E9-3691-45EE-8D42-D3C2D01B9039}.Release|x64.Build.0 = Release|Any CPU
 		{7510E0E9-3691-45EE-8D42-D3C2D01B9039}.Release|x86.ActiveCfg = Release|Any CPU
 		{7510E0E9-3691-45EE-8D42-D3C2D01B9039}.Release|x86.Build.0 = Release|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Debug|x64.Build.0 = Debug|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Debug|x86.Build.0 = Debug|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Release|x64.ActiveCfg = Release|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Release|x64.Build.0 = Release|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Release|x86.ActiveCfg = Release|Any CPU
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,5 +94,6 @@ Global
 		{FA5654D3-8DF0-463B-8E90-127C477A098A} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{605824F0-7E2D-48F5-AC2C-51ED88793294} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{7510E0E9-3691-45EE-8D42-D3C2D01B9039} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{CA7B2916-07EF-4A06-A38A-23317FE60CA2} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal
