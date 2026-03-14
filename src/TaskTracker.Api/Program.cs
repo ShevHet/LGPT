@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using TaskTracker.Api.Services;
 using TaskTracker.Api.Options;
+using TaskTracker.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,8 @@ builder.Services
 
 builder.Services.Configure<TaskTrackerOptions>(
     builder.Configuration.GetSection(TaskTrackerOptions.SectionName));
+
+builder.Services.AddInfrastructure(builder.Configuration)l
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
