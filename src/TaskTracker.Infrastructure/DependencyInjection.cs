@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+Ôªøusing Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TaskTracker.Infrastructure.Persistence;
@@ -13,9 +13,9 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("TaskTrackerDb");
 
-        if (string.IsNullOrSpace(connectionString))
+        if (string.IsNullOrWhiteSpace(connectionString))
             throw new InvalidOperationException(
-                "Connection string 'TaskTrackerDb ÌÂ Ì‡È‰ÂÌ");
+                "Connection string 'TaskTrackerDb' was not found.");
 
         services.AddDbContext<TaskTrackerDbContext>(options =>
         {

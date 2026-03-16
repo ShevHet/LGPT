@@ -16,7 +16,7 @@ builder.Services
 builder.Services.Configure<TaskTrackerOptions>(
     builder.Configuration.GetSection(TaskTrackerOptions.SectionName));
 
-builder.Services.AddInfrastructure(builder.Configuration)l
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

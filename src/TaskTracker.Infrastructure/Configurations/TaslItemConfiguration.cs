@@ -1,5 +1,5 @@
-using Microsoft.EntityFramework;
-using Microsoft.EntityFramework.Metadata.Builders;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TaskTracker.Domain.Models;
 
 namespace TaskTracker.Infrastructure.Persistence.Configurations;
