@@ -1,12 +1,12 @@
-using Microsoft.EntityFramework;
-using Microsoft.EntityFramework.Metadata.Builders;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TaskTracker.Domain.Models;
 
 namespace TaskTracker.Infrastructure.Persistence.Configurations;
 
 public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 {
-	public void Configure(EnityTypeBuilder<Project> builder)
+	public void Configure(EntityTypeBuilder<Project> builder)
 	{
 		builder.ToTable("Projects");
 
@@ -16,7 +16,7 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 			.IsRequired()
 			.HasMaxLength(200);
 
-		builder.Propetry(p => p.CreatedAt)
+		builder.Property(p => p.CreatedAt)
 			.IsRequired();
 
 		builder.HasMany(p => p.Tasks)

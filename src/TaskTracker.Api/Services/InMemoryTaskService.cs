@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Options;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Options;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Api.Exceptions;
 using TaskTracker.Api.Options;
 using TaskTracker.Domain.Models;
+using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
 
 namespace TaskTracker.Api.Services;
 
@@ -13,8 +13,8 @@ public class InMemoryTaskService : ITaskService
 
     private static readonly List<TaskItem> _tasks = new()
     {
-        new TaskItem { Id = 1, Title = "Learn HTTP basics", IsDone = false },
-        new TaskItem { Id = 2, Title = "Open Swagger UI", IsDone = true }
+        new TaskItem { Id = 1, Title = "Learn HTTP basics", Status = DomainTaskStatus.New, CreatedAt = DateTime.UtcNow, UpdateAt = DateTime.UtcNow },
+        new TaskItem { Id = 2, Title = "Open Swagger UI", Status = DomainTaskStatus.Done, CreatedAt = DateTime.UtcNow, UpdateAt = DateTime.UtcNow }
     };
 
     public InMemoryTaskService(IOptions<TaskTrackerOptions> options)
@@ -27,13 +27,8 @@ public class InMemoryTaskService : ITaskService
         await Task.Yield();
         ct.ThrowIfCancellationRequested();
 
-        return _tasks.Select(t => new TaskDto
-        {
-            Id = t.Id,
-            Title = t.Title,
-            IsDone = t.IsDone
-        }).ToList();
-    }   
+        return _tasks.Select(ToDto).ToList();
+    }
 
     public async Task<TaskDto> GetByIdAsync(int id, CancellationToken ct)
     {
@@ -44,22 +39,9 @@ public class InMemoryTaskService : ITaskService
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
         if (task is null)
-            throw new NotFoundException($"Task with id={id} was not found.");     
-       
-           
-        var dto = new TaskDto
-        {
-            Id = task.Id,
-            Title = task.Title,
-            IsDone = task.IsDone
-        };
+            throw new NotFoundException($"Task with id={id} was not found.");
 
-        return new TaskDto
-        {
-            Id = task.Id,
-            Title = task.Title,
-            IsDone = task.IsDone
-        };
+        return ToDto(task);
     }
 
     public async Task<TaskDto> CreateAsync(string title, CancellationToken ct)
@@ -76,17 +58,20 @@ public class InMemoryTaskService : ITaskService
             title = $"{_options.DefaultTitlePrefix} {title}";
 
         var newId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
+        var now = DateTime.UtcNow;
 
-        var task = new TaskItem { Id = newId, Title = title, IsDone = false };
+        var task = new TaskItem
+        {
+            Id = newId,
+            Title = title,
+            Status = DomainTaskStatus.New,
+            CreatedAt = now,
+            UpdateAt = now
+        };
 
         _tasks.Add(task);
 
-        return new TaskDto
-        {
-            Id = task.Id,
-            Title = task.Title,
-            IsDone = task.IsDone
-        };
+        return ToDto(task);
     }
 
     public Task UpdateAsync(int id, string title, bool isDone, CancellationToken ct)
@@ -97,12 +82,12 @@ public class InMemoryTaskService : ITaskService
         ValidateTitle(title);
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
-
-        if (task == null)
+        if (task is null)
             throw new NotFoundException($"Task with id={id} was not found.");
 
         task.Title = title;
-        task.IsDone = isDone;
+        task.Status = isDone ? DomainTaskStatus.Done : DomainTaskStatus.InProgress;
+        task.UpdateAt = DateTime.UtcNow;
 
         return Task.CompletedTask;
     }
@@ -110,22 +95,26 @@ public class InMemoryTaskService : ITaskService
     public Task DeleteAsync(int id, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        
-        ValidateId(id);        
+        ValidateId(id);
 
         var task = _tasks.FirstOrDefault(t => t.Id == id);
-        if (task == null)
+        if (task is null)
             throw new NotFoundException($"Task with id={id} was not found.");
 
         _tasks.Remove(task);
-
         return Task.CompletedTask;
     }
+
+    private static TaskDto ToDto(TaskItem task) => new()
+    {
+        Id = task.Id,
+        Title = task.Title,
+        IsDone = task.Status == DomainTaskStatus.Done
+    };
 
     private static void ValidateId(int id)
     {
         if (id <= 0)
-        if(id <= 0)
             throw new ValidationException("Id must be a positive number.");
     }
 
@@ -136,10 +125,5 @@ public class InMemoryTaskService : ITaskService
 
         if (title.Length < 3)
             throw new ValidationException("Title minimum length is 3.");
-        if(string.IsNullOrWhiteSpace(title))
-            throw new ValidationException("Title must not be empty.");
-        
-        if (title.Length >= 3)
-            throw new ValidationException("Ìèíèìàëüíàÿ äëèíà Title - 3.");
-    }    
+    }
 }
