@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using TaskTracker.Api.Dtos;
-using TaskTracker.Api.Services;
+using TaskTracker.Application.Dtos;
 using TaskTracker.Api.Errors;
+using TaskTracker.Application.Services;
+using CreateTaskDto = TaskTracker.Api.Dtos.CreateTaskDto;
+using UpdateTaskDto = TaskTracker.Api.Dtos.UpdateTaskDto;
 
 namespace TaskTracker.Api.Controllers;
 
@@ -50,10 +52,10 @@ public class TasksController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<TaskDto>> Create([FromBody] CreateTaskDto dto,
+    public async Task<ActionResult<TaskDto>> Create([FromBody] CreateTaskRequestDto dto,
         CancellationToken ct)
     {
-        var created = await _service.CreateAsync(dto.Title,ct);
+        var created = await _service.CreateAsync(dto,ct);
 
         return CreatedAtAction(nameof(GetById), new {id = created.Id}, created);
     }
@@ -68,10 +70,10 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> Update(int id, [FromBody] UpdateTaskDto dto,
+    public async Task<ActionResult> Update(int id, [FromBody] UpdateTaskRequestDto dto,
         CancellationToken ct)
     {
-        await _service.UpdateAsync(id, dto.Title, dto.IsDone, ct);
+        await _service.UpdateAsync(id, dto, ct);
         
         return NoContent();
     }

@@ -1,8 +1,9 @@
-using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
-using TaskTracker.Api.Services;
-using TaskTracker.Api.Options;
+using System.Reflection;
+using TaskTracker.Application.Options;
+using TaskTracker.Application.Services;
 using TaskTracker.Infrastructure;
+using TaskTracker.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +27,7 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(xmlPath);
 });
 
-builder.Services.AddScoped<ITaskService, InMemoryTaskService>();
+builder.Services.AddScoped<ITaskService, EfTaskService>();
 
 var app = builder.Build();
 app.UseMiddleware<TaskTracker.Api.Middleware.ExceptionHandlingMiddleware>();

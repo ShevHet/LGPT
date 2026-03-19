@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TaskTracker.Application.Services;
 using TaskTracker.Infrastructure.Persistence;
+using TaskTracker.Infrastructure.Services;
 
 namespace TaskTracker.Infrastructure;
 
@@ -21,6 +23,8 @@ public static class DependencyInjection
         {
             options.UseNpgsql(connectionString);
         });
+
+        services.AddScoped<ITaskService, EfTaskService>();
 
         return services;
     }

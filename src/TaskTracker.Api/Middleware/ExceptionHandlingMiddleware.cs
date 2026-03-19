@@ -1,6 +1,6 @@
 using System.Text.Json;
+using TaskTracker.Application.Exceptions;
 using TaskTracker.Api.Errors;
-using TaskTracker.Api.Exceptions;
 
 namespace TaskTracker.Api.Middleware;
 
