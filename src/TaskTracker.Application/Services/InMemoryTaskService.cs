@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.Options;
-using TaskTracker.Api.Dtos;
-using TaskTracker.Api.Exceptions;
-using TaskTracker.Api.Options;
+﻿/* using Microsoft.Extensions.Options;
+using TaskTracker.Application.Dtos;
+using TaskTracker.Application.Exceptions;
+using TaskTracker.Application.Options;
 using TaskTracker.Domain.Models;
 using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
 
-namespace TaskTracker.Api.Services;
+namespace TaskTracker.Application.Services;
 
 public class InMemoryTaskService : ITaskService
 {
@@ -13,8 +13,8 @@ public class InMemoryTaskService : ITaskService
 
     private static readonly List<TaskItem> _tasks = new()
     {
-        new TaskItem { Id = 1, Title = "Learn HTTP basics", Status = DomainTaskStatus.New, CreatedAt = DateTime.UtcNow, UpdateAt = DateTime.UtcNow },
-        new TaskItem { Id = 2, Title = "Open Swagger UI", Status = DomainTaskStatus.Done, CreatedAt = DateTime.UtcNow, UpdateAt = DateTime.UtcNow }
+        new TaskItem { Id = 1, Title = "Learn HTTP basics", Status = DomainTaskStatus.New, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+        new TaskItem { Id = 2, Title = "Open Swagger UI", Status = DomainTaskStatus.Done, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
     };
 
     public InMemoryTaskService(IOptions<TaskTrackerOptions> options)
@@ -66,7 +66,7 @@ public class InMemoryTaskService : ITaskService
             Title = title,
             Status = DomainTaskStatus.New,
             CreatedAt = now,
-            UpdateAt = now
+            UpdatedAt = now
         };
 
         _tasks.Add(task);
@@ -87,7 +87,7 @@ public class InMemoryTaskService : ITaskService
 
         task.Title = title;
         task.Status = isDone ? DomainTaskStatus.Done : DomainTaskStatus.InProgress;
-        task.UpdateAt = DateTime.UtcNow;
+        task.UpdatedAt = DateTime.UtcNow;
 
         return Task.CompletedTask;
     }
@@ -126,4 +126,6 @@ public class InMemoryTaskService : ITaskService
         if (title.Length < 3)
             throw new ValidationException("Title minimum length is 3.");
     }
+    }
 }
+*/

@@ -25,7 +25,7 @@ public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
         builder.Property(t => t.CreatedAt)
             .IsRequired();
 
-        builder.Property(t => t.UpdateAt)
+        builder.Property(t => t.UpdatedAt)
             .IsRequired();
 
         builder.Property(t=>t.ProjectId)
