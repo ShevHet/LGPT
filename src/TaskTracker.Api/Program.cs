@@ -11,7 +11,7 @@ builder.Services
     .AddControllers()
     .ConfigureApiBehaviorOptions(options =>
     {
-        options.SuppressModelStateInvalidFilter = true;
+        options.SuppressModelStateInvalidFilter = false;
     });
 
 builder.Services.Configure<TaskTrackerOptions>(
@@ -26,8 +26,6 @@ builder.Services.AddSwaggerGen(options =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     options.IncludeXmlComments(xmlPath);
 });
-
-builder.Services.AddScoped<ITaskService, EfTaskService>();
 
 var app = builder.Build();
 app.UseMiddleware<TaskTracker.Api.Middleware.ExceptionHandlingMiddleware>();

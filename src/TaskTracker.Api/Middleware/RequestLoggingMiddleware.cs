@@ -20,10 +20,14 @@ public sealed class RequestLoggingMiddleware
         _logger.LogInformation("HTTP {Method} {Path} started",
             context.Request.Method,
             context.Request.Path);
-
-        await _next(context);
-
-        sw.Stop();
+        try
+        {
+            await _next(context);
+        }
+        finally
+        {
+            sw.Stop();
+        }
 
         _logger.LogInformation("HTTP {Method} {Path} finished {StatusCode} in {Elapsed}ms",
             context.Request.Method,

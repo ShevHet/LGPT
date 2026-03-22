@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TaskTracker.Domain.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace TaskTracker.Infrastructure.Persistence.Configurations;
+namespace TaskTracker.Infrastructure.Configurations;
 
 public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
 {
@@ -12,13 +13,14 @@ public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
 
         builder.HasKey(t  => t.Id);
 
+        builder.Property(t => t.Id).ValueGeneratedOnAdd();
+
         builder.Property(t => t.Title)
             .IsRequired()
             .HasMaxLength(200);
 
         builder.Property(t => t.Description)
             .HasMaxLength(200);
-
         builder.Property(t => t.Status)
             .IsRequired();
 
@@ -30,5 +32,10 @@ public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
 
         builder.Property(t=>t.ProjectId)
             .IsRequired();
+
+        builder.HasOne(t=>t.Project)
+            .WithMany(p=>p.Tasks)
+            .HasForeignKey(t=>t.ProjectId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
