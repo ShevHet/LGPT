@@ -2,21 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TaskTracker.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace TaskTracker.Infrastructure.Persistence.Migrations
+namespace TaskTracker.Infrastructure.Migrations
 {
     [DbContext(typeof(TaskTrackerDbContext))]
-    [Migration("20260316210059_InitialCreate")]
-    partial class InitialCreate
+    partial class TaskTrackerDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,7 +46,10 @@ namespace TaskTracker.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("TaskTracker.Domain.Models.TaskItem", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -69,10 +69,12 @@ namespace TaskTracker.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime>("UpdateAt")
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("Tasks", (string)null);
                 });
@@ -81,7 +83,7 @@ namespace TaskTracker.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("TaskTracker.Domain.Models.Project", "Project")
                         .WithMany("Tasks")
-                        .HasForeignKey("Id")
+                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

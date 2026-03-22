@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using TaskTracker.Application.Dtos;
 using TaskTracker.Api.Errors;
 using TaskTracker.Application.Services;
-using CreateTaskDto = TaskTracker.Api.Dtos.CreateTaskDto;
-using UpdateTaskDto = TaskTracker.Api.Dtos.UpdateTaskDto;
 
-namespace TaskTracker.Api.Controllers;
+namespace TaskTracker.Api.Controller;
 
 [ApiController]
 [Route("tasks")]
@@ -24,7 +22,7 @@ public class TasksController : ControllerBase
     /// <response code="200">Tasks were returned successfully</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<TaskDto>>> GetAll(CancellationToken ct)
+    public async Task<ActionResult<List<TaskResponseDto>>> GetAll(CancellationToken ct)
     {       
         return Ok(await _service.GetAllAsync(ct)); // 200
     }
@@ -37,7 +35,7 @@ public class TasksController : ControllerBase
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<TaskDto>> GetById(int id, CancellationToken ct)
+    public async Task<ActionResult<TaskResponseDto>> GetById(int id, CancellationToken ct)
     {
         var task = await _service.GetByIdAsync(id, ct);
         
@@ -52,7 +50,7 @@ public class TasksController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<TaskDto>> Create([FromBody] CreateTaskRequestDto dto,
+    public async Task<ActionResult<TaskResponseDto>> Create([FromBody] CreateTaskRequestDto dto,
         CancellationToken ct)
     {
         var created = await _service.CreateAsync(dto,ct);

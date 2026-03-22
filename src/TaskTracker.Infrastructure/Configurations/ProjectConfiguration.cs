@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TaskTracker.Domain.Models;
 
-namespace TaskTracker.Infrastructure.Persistence.Configurations;
+namespace TaskTracker.Infrastructure.Configurations;
 
 public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 {
@@ -21,7 +21,7 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
 		builder.HasMany(p => p.Tasks)
 			.WithOne(p => p.Project)
-			.HasForeignKey(p => p.Id)
+			.HasForeignKey(p => p.ProjectId)
 			.OnDelete(DeleteBehavior.Restrict);
 	}
 }

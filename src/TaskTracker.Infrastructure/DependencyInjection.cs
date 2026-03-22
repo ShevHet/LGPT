@@ -24,7 +24,8 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString);
         });
 
-        services.AddScoped<ITaskService, EfTaskService>();
+        services.AddScoped<ITaskRepository, EfTaskRepository>();
+        services.AddScoped<ITaskService, TaskService>();
 
         return services;
     }
