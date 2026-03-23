@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using TaskTracker.Application.Dtos;
-using TaskTracker.Application.Exceptions;
 using TaskTracker.Application.Services;
 using TaskTracker.Domain.Models;
 using TaskTracker.Infrastructure.Persistence;
