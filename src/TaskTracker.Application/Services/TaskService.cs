@@ -21,7 +21,7 @@ namespace TaskTracker.Application.Services
                 Title = request.Title,
                 Description = request.Description,
                 Status = request.Status,
-                CreatedAt = now,
+                CreatedAt = DateTime.UtcNow,
                 UpdatedAt = now
             };
             await _repo.AddAsync(task,ct);
@@ -61,11 +61,14 @@ namespace TaskTracker.Application.Services
             var task = await _repo.GetByIdAsync(id, ct)
                 ?? throw new NotFoundException($"Task with id = {id} was not found");
 
+            if (!await _repo.ProjectExistsAsync(request.ProjectId, ct))
+                throw new NotFoundException($"Project with id = {id} was not found");
+
             task.ProjectId = request.ProjectId;
             task.Title = request.Title;
             task.Description = request.Description;
             task.Status = request.Status;
-            task.UpdatedAt = DateTime.UtcNow;
+            task.UpdatedAt = DateTime.UtcNow;            
 
             await _repo.SaveChangesAsync(ct);
             return true;

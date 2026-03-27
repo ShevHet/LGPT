@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TaskTracker.Domain.Models;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace TaskTracker.Infrastructure.Configurations;
 

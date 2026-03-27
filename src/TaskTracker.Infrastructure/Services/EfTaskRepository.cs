@@ -1,11 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using TaskTracker.Application.Dtos;
-using TaskTracker.Application.Exceptions;
 using TaskTracker.Application.Services;
 using TaskTracker.Domain.Models;
 using TaskTracker.Infrastructure.Persistence;
@@ -25,7 +18,7 @@ namespace TaskTracker.Infrastructure.Services
             await _db.Tasks.AsNoTracking().ToListAsync(ct);
 
         public Task<TaskItem?> GetByIdAsync(int id, CancellationToken ct) =>
-            _db.Tasks.FirstOrDefaultAsync(x => x.Id == id);
+            _db.Tasks.FirstOrDefaultAsync(x => x.Id == id, ct);
 
         public Task<bool> ProjectExistsAsync(int projectId, CancellationToken ct)=>
             _db.Projects.AnyAsync(x => x.Id == projectId,ct);
