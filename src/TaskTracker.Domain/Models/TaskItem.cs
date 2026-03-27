@@ -16,6 +16,6 @@ public class TaskItem
    
     public DateTime UpdatedAt { get; set; }
 
-    public Project Project { get; set; } = null;
+    public Project Project { get; set; } = null!;
 
 }

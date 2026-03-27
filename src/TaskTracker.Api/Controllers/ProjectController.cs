@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.FileProviders;
-using System.Runtime.CompilerServices;
 using TaskTracker.Application.Dtos;
 using TaskTracker.Application.Services;
 
-namespace TaskTracker.Api.Controller
+namespace TaskTracker.Api.Controllers
 {
     [ApiController]
     [Route("projects")]

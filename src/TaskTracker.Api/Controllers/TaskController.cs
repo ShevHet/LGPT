@@ -3,21 +3,21 @@ using TaskTracker.Application.Dtos;
 using TaskTracker.Api.Errors;
 using TaskTracker.Application.Services;
 
-namespace TaskTracker.Api.Controller;
+namespace TaskTracker.Api.Controllers;
 
 [ApiController]
 [Route("tasks")]
-public class TasksController : ControllerBase
+public class TaskController : ControllerBase
 {
     private readonly ITaskService _service;
 
-    public TasksController(ITaskService service)
+    public TaskController(ITaskService service)
     {
         _service = service;
     }
 
     /// <summary>Get all tasks</summary>
-    /// <remarks>Returns all tasks currently stored in memory.</remarks>
+    /// <remarks>Returns all tasks currently stored in DB.</remarks>
     /// <returns>List of tasks</returns>
     /// <response code="200">Tasks were returned successfully</response>
     [HttpGet]

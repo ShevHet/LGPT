@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using TaskTracker.Application.Options;
-using TaskTracker.Application.Services;
+using TaskTracker.Application;
 using TaskTracker.Infrastructure;
-using TaskTracker.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +15,7 @@ builder.Services
 builder.Services.Configure<TaskTrackerOptions>(
     builder.Configuration.GetSection(TaskTrackerOptions.SectionName));
 
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();

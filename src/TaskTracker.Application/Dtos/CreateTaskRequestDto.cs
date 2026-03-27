@@ -12,7 +12,7 @@ namespace TaskTracker.Application.Dtos
         [StringLength(200, MinimumLength = 1)]
         public string Title { get; set; } = string.Empty;
 
-        [StringLength(2000)]
+        [StringLength(200)]
         public string? Description { get; set; }
 
         [EnumDataType(typeof(DomainTaskStatus))]

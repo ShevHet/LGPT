@@ -23,7 +23,7 @@ namespace TaskTracker.Application.Services
             var project = new Project
             {
                 Name = request.Name,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
 
             await _repo.AddAsync(project, ct);
@@ -41,12 +41,12 @@ namespace TaskTracker.Application.Services
             if(project == null)            
                 throw new NotFoundException($"Project with id = {id} was not found");
             
-            var hasTasks = await _repo.GetTasksByProjectIdAsync(id, ct);
+            var hasTasks = await _repo.HasTasksAsync(id, ct);
 
-            if (hasTasks != null)
-                throw new InvalidOperationException("Cannot delete a project that has tasks.");
+            if (hasTasks)
+                throw new ConflictException("Cannot delete a project that has tasks.");
 
-            _repo.DeleteAsync(project);
+            _repo.Remove(project);
             await _repo.SaveChangesAsync(ct);
 
             return true;
@@ -59,22 +59,49 @@ namespace TaskTracker.Application.Services
             return project.Select(Map).ToList();
         }
 
-        public Task<ProjectResponseDto?> GetByIdAsync(int id, CancellationToken ct)
+        public async Task<ProjectResponseDto> GetByIdAsync(int id, CancellationToken ct)
         {
             ValidateId(id);
-            throw new NotImplementedException();
+            var task = await _repo.GetByIdAsync(id, ct)
+                ?? throw new NotFoundException($"Project with id = {id} was not found");
+
+            return Map(task);
         }
 
-        public Task<IReadOnlyCollection<TaskResponseDto>> GetTasksByProjectIdAsync(int projectId, CancellationToken ct)
+        public async Task<IReadOnlyCollection<TaskResponseDto>> GetTasksByProjectIdAsync(int projectId, CancellationToken ct)
         {
             ValidateId(projectId);
-            throw new NotImplementedException();
+
+            var projectExists = await _repo.ExistsAsync(projectId, ct);
+
+            if (!projectExists)
+                throw new NotFoundException($"Project with id = {projectId} was not found");
+
+            var tasks = await _repo.GetTasksByProjectIdAsync(projectId, ct);                
+
+            return tasks.Select(t => new TaskResponseDto
+            {
+                Id = t.Id,
+                ProjectId = t.ProjectId,
+                Title = t.Title,
+                Description = t.Description,
+                Status = t.Status,
+                CreatedAt = t.CreatedAt,
+                UpdatedAt = t.UpdatedAt
+
+            }).ToList();
         }
 
-        public Task<bool> UpdateAsync(int id, UpdateProjectRequestDto request, CancellationToken ct)
+        public async Task<bool> UpdateAsync(int id, UpdateProjectRequestDto request, CancellationToken ct)
         {
             ValidateId(id);
-            throw new NotImplementedException();
+            var task = await _repo.GetByIdAsync(id, ct)
+                ?? throw new NotFoundException($"Project with id = {id} was not found");
+
+            task.Name = request.Name;
+
+            await _repo.SaveChangesAsync(ct);
+            return true;
         }
 
         private static void ValidateId(int id)
@@ -84,6 +111,7 @@ namespace TaskTracker.Application.Services
 
         private static ProjectResponseDto Map(Project pr) => new()
         {
+            Id = pr.Id,
             Name = pr.Name,
             CreatedAt = pr.CreatedAt,
         };

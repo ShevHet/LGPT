@@ -15,7 +15,7 @@ namespace TaskTracker.Infrastructure.Services
         public Task AddAsync(Project project, CancellationToken ct) =>
             _db.Projects.AddAsync(project, ct).AsTask();
 
-        public void DeleteAsync(Project project) =>
+        public void Remove(Project project) =>
             _db.Projects.Remove(project);
 
         public async Task<bool> ExistsAsync(int id, CancellationToken ct)=>

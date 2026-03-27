@@ -63,6 +63,9 @@ public sealed class ExceptionHandlingMiddleware
         if (ex is System.Text.Json.JsonException)
             return (StatusCodes.Status400BadRequest, "Invalid JSON payload", null);
 
+        if (ex is ConflictException ce)
+            return (StatusCodes.Status409Conflict, ce.Message, null);
+
         return (StatusCodes.Status500InternalServerError, "Unexpected error", null);
     }
 }
