@@ -40,9 +40,13 @@ namespace TaskTracker.Application.Services
             return true;
         }
 
-        public async Task<IReadOnlyCollection<TaskResponseDto>> GetAllAsync(CancellationToken ct)
+        public async Task<IReadOnlyCollection<TaskResponseDto>> GetAllAsync(GetTaskRequestDto request, CancellationToken ct)
         {
-            var items = await _repo.GetAllAsync(ct);
+            ArgumentNullException.ThrowIfNull(request);
+
+            var skip = CalculateSkip(request.Page, request.PageSize);
+            var items = await _repo.GetPagedAsync(skip, request.PageSize, ct);
+            
             return items.Select(Map).ToList();
         }
 
@@ -89,5 +93,15 @@ namespace TaskTracker.Application.Services
             CreatedAt = t.CreatedAt,
             UpdatedAt = t.UpdatedAt,
         };
+
+        private static int CalculateSkip(int page, int pageSize)
+        {
+            var skip = ((long)page - 1) * pageSize;
+
+            if (skip > int.MaxValue)
+                throw new ValidationException("Request page is too large.");
+
+            return (int)skip;
+        }
     }
 }

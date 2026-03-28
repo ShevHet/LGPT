@@ -22,9 +22,11 @@ public class TaskController : ControllerBase
     /// <response code="200">Tasks were returned successfully</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<TaskResponseDto>>> GetAll(CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyCollection<TaskResponseDto>>> GetAll(
+        [FromQuery] GetTaskRequestDto request,
+        CancellationToken ct)
     {       
-        return Ok(await _service.GetAllAsync(ct)); // 200
+        return Ok(await _service.GetAllAsync(request, ct)); // 200
     }
 
     //// <summary>Get a task by id</summary>

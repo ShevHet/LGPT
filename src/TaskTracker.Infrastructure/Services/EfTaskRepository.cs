@@ -14,8 +14,13 @@ namespace TaskTracker.Infrastructure.Services
         public Task AddAsync(TaskItem task, CancellationToken ct) =>
             _db.Tasks.AddAsync(task, ct).AsTask();
 
-        public async Task<IReadOnlyCollection<TaskItem>> GetAllAsync(CancellationToken ct) =>
-            await _db.Tasks.AsNoTracking().ToListAsync(ct);
+        public async Task<IReadOnlyCollection<TaskItem>> GetPagedAsync(int skip, int take, CancellationToken ct) =>
+            await _db.Tasks
+            .AsNoTracking()
+            .OrderBy(x=>x.Id)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);            
 
         public Task<TaskItem?> GetByIdAsync(int id, CancellationToken ct) =>
             _db.Tasks.FirstOrDefaultAsync(x => x.Id == id, ct);
