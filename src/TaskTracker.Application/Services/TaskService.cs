@@ -1,6 +1,9 @@
-﻿using TaskTracker.Application.Dtos;
+﻿using System.Diagnostics;
+using TaskTracker.Application.Dtos;
 using TaskTracker.Application.Exceptions;
 using TaskTracker.Domain.Models;
+using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
+
 
 namespace TaskTracker.Application.Services
 {
@@ -43,9 +46,10 @@ namespace TaskTracker.Application.Services
         public async Task<IReadOnlyCollection<TaskResponseDto>> GetAllAsync(GetTaskRequestDto request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
+            ValidateGetAllRequest(request);
 
             var skip = CalculateSkip(request.Page, request.PageSize);
-            var items = await _repo.GetPagedAsync(skip, request.PageSize, ct);
+            var items = await _repo.GetPagedAsync(skip, request.PageSize,request.Status, request.ProjectId, ct);
             
             return items.Select(Map).ToList();
         }
@@ -81,6 +85,15 @@ namespace TaskTracker.Application.Services
         private static void ValidateId(int id)
         {
             if (id <= 0) throw new ValidationException("Id must be a positive number");
+        }
+
+        private static void ValidateGetAllRequest(GetTaskRequestDto request)
+        {
+            if (request.ProjectId.HasValue && request.ProjectId.Value <= 0)
+                throw new ValidationException("ProjectId must be a positive number.");
+
+            if (request.Status.HasValue && !Enum.IsDefined(typeof(DomainTaskStatus), request.Status.Value))
+                throw new ValidationException("Status must be one of: New, InProgress, Done.");
         }
 
         private static TaskResponseDto Map(TaskItem t) => new()
