@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
+
 
 namespace TaskTracker.Application.Dtos
 {
@@ -13,5 +15,11 @@ namespace TaskTracker.Application.Dtos
 
         [Range(1, MaxPageSize, ErrorMessage = "PageSize must be between 1 and 100.")]
         public int PageSize { get; set; } = DefaultPageSize;
+
+        [EnumDataType(typeof(DomainTaskStatus), ErrorMessage = "Status must be one of: New, InProgress"]
+        public DomainTaskStatus? Status { get; set; }
+
+        [Range(1,int.MaxValue, ErrorMessage = "ProjectId must be greater than 0.")]
+        public int? ProjectId { get; set; }
     }
 }
