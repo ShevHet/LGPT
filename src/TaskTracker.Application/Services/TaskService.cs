@@ -57,7 +57,7 @@ namespace TaskTracker.Application.Services
         public async Task<TaskResponseDto> GetByIdAsync(int id, CancellationToken ct)
         {
             ValidateId(id);
-            var task = await _repo.GetByIdAsync(id, ct)
+            var task = await _repo.GetByIdReadOnlyAsync(id, ct)
                 ?? throw new NotFoundException($"Task with id = {id} was not found");
             return Map(task);
         }
@@ -100,6 +100,7 @@ namespace TaskTracker.Application.Services
         {
             Id = t.Id,
             ProjectId = t.ProjectId,
+            ProjectName = t.Project.Name,
             Title = t.Title,
             Description = t.Description,
             Status = t.Status,

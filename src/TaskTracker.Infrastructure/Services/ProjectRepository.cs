@@ -28,6 +28,11 @@ namespace TaskTracker.Infrastructure.Services
         public Task<Project?> GetByIdAsync(int id, CancellationToken ct)=>
             _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+        public Task<Project?> GetByIdReadOnlyAsync(int id, CancellationToken ct)=>
+            _db.Projects
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id, ct);
+
         public async Task<IReadOnlyCollection<TaskItem>> GetTasksByProjectIdAsync(int projectId, CancellationToken ct)=>
             await _db.Tasks
             .AsNoTracking()

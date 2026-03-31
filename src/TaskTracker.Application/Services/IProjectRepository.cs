@@ -5,6 +5,7 @@ namespace TaskTracker.Application.Services
     public interface IProjectRepository
     {
         Task<IReadOnlyCollection<Project>> GetAllAsync(CancellationToken ct);
+        Task<Project?> GetByIdReadOnlyAsync(int id, CancellationToken ct);
         Task<Project?> GetByIdAsync(int id, CancellationToken ct);
         Task<bool> ExistsAsync(int id, CancellationToken ct);
         Task AddAsync(Project project, CancellationToken ct);
