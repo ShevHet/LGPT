@@ -19,7 +19,9 @@ namespace TaskTracker.Infrastructure.Services
         public async Task<IReadOnlyCollection<TaskItem>> GetPagedAsync(int skip, int take, 
             DomainTaskStatus? status, int? projectId, CancellationToken ct)
         {
-            IQueryable<TaskItem> query = _db.Tasks.AsNoTracking();
+            IQueryable<TaskItem> query = _db.Tasks
+                .AsNoTracking()
+                .Include(t=>t.Project);
 
             if(status.HasValue)
                 query= query.Where(x=>x.Status== status.Value);
@@ -37,6 +39,12 @@ namespace TaskTracker.Infrastructure.Services
 
         public Task<TaskItem?> GetByIdAsync(int id, CancellationToken ct) =>
             _db.Tasks.FirstOrDefaultAsync(x => x.Id == id, ct);
+
+        public Task<TaskItem?> GetByIdReadOnlyAsync(int id, CancellationToken ct) =>
+            _db.Tasks
+                .AsNoTracking()
+                .Include(t=>t.Project)
+                .FirstOrDefaultAsync(x => x.Id == id, ct);
 
         public Task<bool> ProjectExistsAsync(int projectId, CancellationToken ct)=>
             _db.Projects.AnyAsync(x => x.Id == projectId,ct);
