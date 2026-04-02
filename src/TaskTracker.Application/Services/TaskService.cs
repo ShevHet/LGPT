@@ -14,8 +14,9 @@ namespace TaskTracker.Application.Services
         public TaskService(ITaskRepository repo) => _repo = repo;
         public async Task<TaskResponseDto> CreateAsync(CreateTaskRequestDto request, CancellationToken ct)
         {
-            if (!await _repo.ProjectExistsAsync(request.ProjectId, ct))
-                throw new NotFoundException($"Project with id {request.ProjectId} was not found.");
+            ArgumentNullException.ThrowIfNull(request);
+
+            await EnsureProjectExistsAsync(request.ProjectId, ct);
 
             var now = DateTime.UtcNow;
             var task = new TaskItem
@@ -65,21 +66,28 @@ namespace TaskTracker.Application.Services
         public async Task<bool> UpdateAsync(int id, UpdateTaskRequestDto request, CancellationToken ct)
         {
             ValidateId(id);
+            ArgumentNullException.ThrowIfNull(request);
 
             var task = await _repo.GetByIdAsync(id, ct)
                 ?? throw new NotFoundException($"Task with id = {id} was not found");
 
-            if (!await _repo.ProjectExistsAsync(request.ProjectId, ct))
-                throw new NotFoundException($"Project with id = {id} was not found");
+            if (task.ProjectId != request.ProjectId)
+                await EnsureProjectExistsAsync(request.ProjectId, ct);
 
             task.ProjectId = request.ProjectId;
             task.Title = request.Title;
             task.Description = request.Description;
             task.Status = request.Status;
-            task.UpdatedAt = DateTime.UtcNow;            
+            task.UpdatedAt = DateTime.UtcNow;
 
             await _repo.SaveChangesAsync(ct);
             return true;
+        }
+
+        public async Task EnsureProjectExistsAsync(int projectId, CancellationToken ct)
+        {
+            if (!await _repo.ProjectExistsAsync(projectId, ct))
+                throw new NotFoundException($"Project with id = {projectId} was not found");
         }
 
         private static void ValidateId(int id)
