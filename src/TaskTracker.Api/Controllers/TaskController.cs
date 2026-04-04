@@ -16,12 +16,13 @@ public class TaskController : ControllerBase
         _service = service;
     }
 
-    /// <summary>Get all tasks</summary>
-    /// <remarks>Returns all tasks currently stored in DB.</remarks>
-    /// <returns>List of tasks</returns>
-    /// <response code="200">Tasks were returned successfully</response>
+    /// <summary>Returns a page of tasks</summary>
+    /// <remarks>Filtering tasks by status and project id.</remarks>    
+    /// <response code="200">Returns the task list.</response>
+    /// <response code="400">Returns 400 if thw query is invalid.</response>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyCollection<TaskResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IReadOnlyCollection<TaskResponseDto>>> GetAll(
         [FromQuery] GetTaskRequestDto request,
         CancellationToken ct)
@@ -29,13 +30,15 @@ public class TaskController : ControllerBase
         return Ok(await _service.GetAllAsync(request, ct)); // 200
     }
 
-    //// <summary>Get a task by id</summary>
-    /// <param name="id">Task id</param>
-    /// <returns>Task</returns>
-    /// <response code="200">Task was found and returned</response>
-    /// <response code="404">Task with the given id was not found</response>
+    /// <summary>Returns a task by id.</summary>
+    /// <param name="id">Task id.</param>
+    /// <param name="ct">Request cancellation  token</param>
+    /// <response code="200">Returns the task.</response>
+    /// <reposnse code="400">Returns 400 if id is invalid</reposnse>
+    /// <response code="404">Returns 404 if the task is not found.</response>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(TaskResponseDto),StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TaskResponseDto>> GetById(int id, CancellationToken ct)
     {
@@ -44,14 +47,16 @@ public class TaskController : ControllerBase
         return Ok(task); // 200
     }
 
-    /// <summary>Create a new task</summary>
-    /// <param name="dto">Task data</param>
-    /// <returns>Created task</returns>
-    /// <response code="201">Task was created successfully</response>
-    /// <response code="400">Validation failed</response>
+    /// <summary>Create a new task.</summary>
+    /// <param name="dto">Task data.</param>
+    /// <param name="ct">Request cancellation token</param>
+    /// <response code="201">Returns the created task.</response>
+    /// <response code="400">Returns 400 if the request is invalid.</response>
+    /// <response code="404">Returns 404 is the project is not found</response>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(TaskResponseDto),StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TaskResponseDto>> Create([FromBody] CreateTaskRequestDto dto,
         CancellationToken ct)
     {
@@ -60,12 +65,13 @@ public class TaskController : ControllerBase
         return CreatedAtAction(nameof(GetById), new {id = created.Id}, created);
     }
 
-    /// <summary>Update an existing task (full update)</summary>
-    /// <param name="id">Task id</param>
-    /// <param name="dto">Updated task data</param>
-    /// <response code="204">Task was updated successfully</response>
-    /// <response code="400">Validation failed</response>
-    /// <response code="404">Task with the given id was not found</response>
+    /// <summary>Update a task.</summary>
+    /// <param name="id">Task id.</param>
+    /// <param name="dto">Task data.</param>
+    /// <param name="ct">Request cancellation token.</param>
+    /// <response code="204">Task was updated.</response>
+    /// <response code="400">Returns 400 if the request is invalid.</response>
+    /// <response code="404">Return 404 if the task is not found.</response>
     [HttpPut("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -78,12 +84,15 @@ public class TaskController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Delete a task</summary>
-    /// <param name="id">Task id</param>
-    /// <response code="204">Task was deleted successfully</response>
-    /// <response code="404">Task with the given id was not found</response>
+    /// <summary>Delete a task.</summary>
+    /// <param name="id">Task id.</param>
+    /// <param name="ct">Request cancellation token.</param>
+    /// <response code="204">Task was deleted.</response>
+    /// <response code="400">Returns 400 if the id is invalid</response>
+    /// <response code="404">Returns 404 if the task is not found.</response>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {

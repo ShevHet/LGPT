@@ -2,6 +2,9 @@
 
 namespace TaskTracker.Application.Dtos
 {
+    /// <summary>
+    /// Task data.
+    /// </summary>
     public class TaskResponseDto
     {
         public int Id { get; set; }
