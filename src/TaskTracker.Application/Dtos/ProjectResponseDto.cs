@@ -1,5 +1,8 @@
 ﻿namespace TaskTracker.Application.Dtos
 {
+    /// <summary>
+    /// Project data.
+    /// </summary>
     public class ProjectResponseDto
     {
         public int Id { get; set; }

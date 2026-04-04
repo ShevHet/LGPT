@@ -2,6 +2,9 @@
 
 namespace TaskTracker.Application.Dtos
 {
+    /// <summary>
+    /// Data to create project.
+    /// </summary>
     public class CreateProjectRequestDto
     {
         [Required]

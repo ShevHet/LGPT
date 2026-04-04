@@ -2,6 +2,9 @@
 
 namespace TaskTracker.Application.Dtos
 {
+    /// <summary>
+    /// Data to update project.
+    /// </summary>
     public class UpdateProjectRequestDto
     {
         [Required]

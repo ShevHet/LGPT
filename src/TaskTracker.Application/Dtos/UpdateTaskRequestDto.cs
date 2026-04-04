@@ -3,6 +3,9 @@ using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
 
 namespace TaskTracker.Application.Dtos
 {
+    /// <summary>
+    /// Data to update task.
+    /// </summary>
     public class UpdateTaskRequestDto
     {
         [Range(1,int.MaxValue, ErrorMessage = "ProjectId must be > 0")]
