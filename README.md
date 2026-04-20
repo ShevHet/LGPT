@@ -1,69 +1,113 @@
-# \# TaskTracker (.NET)
+# TaskTracker
 
-# 
+Небольшой учебный проект на ASP.NET Core.
 
-# Учебный репозиторий для практики Git (ветки/PR/конфликты) и каркаса .NET решения.
+Это API для работы с проектами и задачами. Тут можно создавать проекты, добавлять в них задачи, менять статус и получать списки через HTTP-запросы.
 
-# 
+Без какой-то особой магии, просто нормальный CRUD-проект для практики.
 
-# \## Требования
+## Что тут есть
 
-# \- .NET SDK 9.0 (или версия, которая у тебя установлена)
+- проекты
+- задачи
+- фильтрация задач по статусу и проекту
+- Swagger для проверки запросов
+- тесты на сервисы
 
-# \- Git
+## Что использовалось
 
-# 
+- .NET 9
+- ASP.NET Core Web API
+- Entity Framework Core
+- PostgreSQL
+- xUnit
+- Moq
 
-# Проверить:
+## Как запустить
 
-# \- dotnet --version
+Сначала нужен `PostgreSQL` и `.NET SDK 9.0`.
 
-# \- git --version
+Потом надо прописать строку подключения в `src/TaskTracker.Api/appsettings.json` или в `src/TaskTracker.Api/appsettings.Development.json`.
 
-# 
+Пример:
 
-# \## Как собрать проект
+```json
+"ConnectionStrings": {
+  "TaskTrackerDb": "Host=localhost;Port=5432;Database=tasktracker;Username=postgres;Password=1234"
+}
+```
 
-# В корне репозитория:
+После этого применить миграции:
 
-# dotnet build
+```bash
+dotnet ef database update --project src/TaskTracker.Infrastructure --startup-project src/TaskTracker.Api
+```
 
-# 
+Если `dotnet ef` не найден, значит надо поставить tool:
 
-# \## Как запустить тесты
+```bash
+dotnet tool install --global dotnet-ef
+```
 
-# dotnet test
+Дальше можно запускать API:
 
-# 
+```bash
+dotnet run --project src/TaskTracker.Api
+```
 
-# \## Как запустить API
+После запуска обычно открывается Swagger, либо можно зайти вручную по адресу типа:
 
-# dotnet run --project src/TaskTracker.Api
+```text
+https://localhost:5001/swagger
+```
 
-# 
+Точный порт будет в консоли при запуске.
 
-# После запуска открой браузер:
+## Как запустить тесты
 
-# \- https://localhost:xxxx/swagger (порт будет написан в консоли)
+```bash
+dotnet test
+```
 
+## Основные эндпоинты
 
+### Projects
 
-## Week 2 — HTTP/REST cheat sheet
+- `GET /projects`
+- `GET /projects/{id}`
+- `POST /projects`
+- `PUT /projects/{id}`
+- `DELETE /projects/{id}`
 
-### Methods
-- GET — read data
-- POST — create
-- PUT — replace
-- PATCH — partial update
-- DELETE — delete
+### Tasks
 
-### Status codes used in this project
-- 200 OK — success with response body
-- 201 Created — resource created (POST)
-- 204 No Content — success without body (DELETE/PUT)
-- 400 Bad Request — validation errors
-- 404 Not Found — resource not found
+- `GET /tasks`
+- `GET /tasks/{id}`
+- `POST /tasks`
+- `PUT /tasks/{id}`
+- `DELETE /tasks/{id}`
 
+У задач есть статусы:
 
+- `New`
+- `InProgress`
+- `Done`
 
+Пример запроса с фильтрацией:
 
+```text
+GET /tasks?page=1&pageSize=10&status=Done&projectId=1
+```
+
+## Структура проекта
+
+- `src/TaskTracker.Api` - контроллеры, middleware, swagger
+- `src/TaskTracker.Application` - сервисы, DTO, бизнес-логика
+- `src/TaskTracker.Domain` - модели
+- `src/TaskTracker.Infrastructure` - EF Core, репозитории, миграции
+- `tests/TaskTracker.Tests` - тесты
+- `database` - SQL-скрипты и заметки по БД
+
+## Коротко
+
+Проект учебный, делался для практики с Web API, слоями приложения, базой данных и тестами.
