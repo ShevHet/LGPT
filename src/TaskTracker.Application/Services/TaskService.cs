@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyInjection;
 using TaskTracker.Application.Dtos;
 using TaskTracker.Application.Exceptions;
 using TaskTracker.Domain.Models;
@@ -15,6 +17,7 @@ namespace TaskTracker.Application.Services
         public async Task<TaskResponseDto> CreateAsync(CreateTaskRequestDto request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
+            ValidateCreateRequest(request);
 
             await EnsureProjectExistsAsync(request.ProjectId, ct);
 
@@ -67,6 +70,7 @@ namespace TaskTracker.Application.Services
         {
             ValidateId(id);
             ArgumentNullException.ThrowIfNull(request);
+            ValidateUpdateRequest(request);
 
             var task = await _repo.GetByIdAsync(id, ct)
                 ?? throw new NotFoundException($"Task with id = {id} was not found");
@@ -124,6 +128,27 @@ namespace TaskTracker.Application.Services
                 throw new ValidationException("Request page is too large.");
 
             return (int)skip;
+        }
+
+        private static void ValidateCreateRequest(CreateTaskRequestDto request)
+            => ValidateTaskRequest(request.ProjectId, request.Title, request.Status);
+
+        private static void ValidateUpdateRequest(UpdateTaskRequestDto request)
+            => ValidateTaskRequest(request.ProjectId, request.Title, request.Status);
+
+        private static void ValidateTaskRequest(int projectId, string? title, DomainTaskStatus status)
+        {
+            if (projectId <= 0)
+                throw new ValidationException("ProjectId must be a positive number.");
+
+            if (string.IsNullOrWhiteSpace(title))
+                throw new ValidationException("Title is required.");
+
+            if (title.Length > 200)
+                throw new ValidationException("Title must be 200 characters or fewer.");
+
+            if (!Enum.IsDefined(typeof(DomainTaskStatus), status))
+                throw new ValidationException("Status must be one of: New, InProgress, Done");
         }
     }
 }
