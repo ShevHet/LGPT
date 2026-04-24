@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Threading;
+using Microsoft.EntityFrameworkCore;
 using TaskTracker.Application.Services;
 using TaskTracker.Domain.Models;
 using TaskTracker.Infrastructure.Persistence;
@@ -10,42 +9,39 @@ namespace TaskTracker.Infrastructure.Services
     {
         private readonly TaskTrackerDbContext _db;
 
-        public ProjectRepository(TaskTrackerDbContext db) =>_db = db;
+        public ProjectRepository(TaskTrackerDbContext db) => _db = db;
 
         public Task AddAsync(Project project, CancellationToken ct) =>
             _db.Projects.AddAsync(project, ct).AsTask();
 
-        public void Remove(Project project) =>
-            _db.Projects.Remove(project);
+        public void Remove(Project project) => _db.Projects.Remove(project);
 
-        public async Task<bool> ExistsAsync(int id, CancellationToken ct)=>
-            await _db.Projects.AnyAsync(p => p.Id == id, ct);
+        public Task<bool> ExistsAsync(int id, CancellationToken ct) =>
+            _db.Projects.AnyAsync(project => project.Id == id, ct);
 
         public async Task<IReadOnlyCollection<Project>> GetAllAsync(CancellationToken ct) =>
-            await _db.Projects.AsNoTracking().ToListAsync(ct);
-        
+            await _db.Projects
+                .AsNoTracking()
+                .ToListAsync(ct);
 
-        public Task<Project?> GetByIdAsync(int id, CancellationToken ct)=>
-            _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
+        public Task<Project?> GetByIdAsync(int id, CancellationToken ct) =>
+            _db.Projects.FirstOrDefaultAsync(project => project.Id == id, ct);
 
-        public Task<Project?> GetByIdReadOnlyAsync(int id, CancellationToken ct)=>
+        public Task<Project?> GetByIdReadOnlyAsync(int id, CancellationToken ct) =>
             _db.Projects
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id, ct);
+                .FirstOrDefaultAsync(project => project.Id == id, ct);
 
-        public async Task<IReadOnlyCollection<TaskItem>> GetTasksByProjectIdAsync(int projectId, CancellationToken ct)=>
+        public async Task<IReadOnlyCollection<TaskItem>> GetTasksByProjectIdAsync(int projectId, CancellationToken ct) =>
             await _db.Tasks
-            .AsNoTracking()
-            .Where(x => x.ProjectId == projectId)
-            .OrderBy(x => x.Id)
-            .ToListAsync(ct);
-            
+                .AsNoTracking()
+                .Where(task => task.ProjectId == projectId)
+                .OrderBy(task => task.Id)
+                .ToListAsync(ct);
 
-        public async Task<bool> HasTasksAsync(int projectId, CancellationToken ct)=>
-            await _db.Tasks.AnyAsync(t => t.ProjectId == projectId, ct);
+        public Task<bool> HasTasksAsync(int projectId, CancellationToken ct) =>
+            _db.Tasks.AnyAsync(task => task.ProjectId == projectId, ct);
 
-
-        public Task SaveChangesAsync(CancellationToken ct) =>
-            _db.SaveChangesAsync(ct);
+        public Task SaveChangesAsync(CancellationToken ct) => _db.SaveChangesAsync(ct);
     }
 }

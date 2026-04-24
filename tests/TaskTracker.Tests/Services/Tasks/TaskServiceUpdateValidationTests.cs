@@ -1,10 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Net.WebSockets;
-using System.Windows.Markup;
 using Moq;
 using TaskTracker.Application.Dtos;
+using TaskTracker.Application.Exceptions;
 using TaskTracker.Application.Services;
-using TaskTracker.Domain.Models;
 using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
 
 namespace TaskTracker.Tests.Services.Tasks
@@ -18,64 +15,76 @@ namespace TaskTracker.Tests.Services.Tasks
         {
             var request = BuildRequest();
             request.ProjectId = projectId;
-            var repoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
-            var service = new TaskService(repoMock.Object);
+
+            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
+            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
+            var clockMock = new Mock<IClock>(MockBehavior.Strict);
+            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
 
             var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.UpdateAsync(33, request, CancellationToken.None));
 
-            Assert.Equal("Project id must be a positive number", exception.Message);
-            VerifyNoRepositoryCalls(repoMock);
+            Assert.Equal("ProjectId must be a positive number.", exception.Message);
+            VerifyNoDependencyCalls(taskRepoMock, projectRepoMock, clockMock);
         }
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
-        public async Task UpdateAsync_ShouldThrowValidationException_WhenTitleEmmptyOrWriteSpace(string? title)
+        public async Task UpdateAsync_ShouldThrowValidationException_WhenTitleIsNullEmptyOrWhiteSpace(string? title)
         {
             var request = BuildRequest();
             request.Title = title;
-            var repoMock = new Mock<ITaskRepository>( MockBehavior.Strict);
-            var service = new TaskService(repoMock.Object);
+
+            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
+            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
+            var clockMock = new Mock<IClock>(MockBehavior.Strict);
+            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
 
             var exception = await Assert.ThrowsAsync<ValidationException>(
-                ()=> service.UpdateAsync(22, request, CancellationToken.None));
+                () => service.UpdateAsync(22, request, CancellationToken.None));
 
-            Assert.Equal("Title is required", exception.Message);
-            VerifyNoRepositoryCalls(repoMock);
+            Assert.Equal("Title is required.", exception.Message);
+            VerifyNoDependencyCalls(taskRepoMock, projectRepoMock, clockMock);
         }
 
         [Fact]
-        public async Task UpdateAsync_ShouldThrowValidationException_WhenProjectIdExceedsMaxLengh()
+        public async Task UpdateAsync_ShouldThrowValidationException_WhenTitleExceedsMaxLength()
         {
             var request = BuildRequest();
             request.Title = new string('a', 210);
-            var repoMock = new  Mock<ITaskRepository>(MockBehavior.Strict);
-            var service = new TaskService(repoMock.Object);
+
+            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
+            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
+            var clockMock = new Mock<IClock>(MockBehavior.Strict);
+            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
 
             var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.UpdateAsync(22, request, CancellationToken.None));
 
             Assert.Equal("Title must be 200 characters or fewer.", exception.Message);
-            VerifyNoRepositoryCalls(repoMock);
+            VerifyNoDependencyCalls(taskRepoMock, projectRepoMock, clockMock);
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(999)]
-        public async Task CreateAsync_ShouldThrowValidationException_WhenStatusIsInvalid(int status)
+        public async Task UpdateAsync_ShouldThrowValidationException_WhenStatusIsInvalid(int status)
         {
             var request = BuildRequest();
             request.Status = (DomainTaskStatus)status;
-            var repoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
-            var service = new TaskService(repoMock.Object);
+
+            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
+            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
+            var clockMock = new Mock<IClock>(MockBehavior.Strict);
+            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
 
             var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.UpdateAsync(22, request, CancellationToken.None));
 
-            Assert.Equal("Status must be one of: New, InProgress, Done.", exception.Message);
-            VerifyNoRepositoryCalls(repoMock);
+            Assert.Equal("Status must be one of: New, InProgress, Done", exception.Message);
+            VerifyNoDependencyCalls(taskRepoMock, projectRepoMock, clockMock);
         }
 
         private static UpdateTaskRequestDto BuildRequest() => new()
@@ -86,12 +95,14 @@ namespace TaskTracker.Tests.Services.Tasks
             Status = DomainTaskStatus.Done
         };
 
-        private static void VerifyNoRepositoryCalls(Mock<ITaskRepository> repoMock)
+        private static void VerifyNoDependencyCalls(
+            Mock<ITaskRepository> taskRepoMock,
+            Mock<IProjectRepository> projectRepoMock,
+            Mock<IClock> clockMock)
         {
-            repoMock.Verify(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
-            repoMock.Verify(r => r.ProjectExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
-            repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            repoMock.VerifyNoOtherCalls();
+            taskRepoMock.VerifyNoOtherCalls();
+            projectRepoMock.VerifyNoOtherCalls();
+            clockMock.VerifyNoOtherCalls();
         }
     }
 }

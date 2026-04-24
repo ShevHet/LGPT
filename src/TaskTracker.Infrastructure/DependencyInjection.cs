@@ -28,7 +28,7 @@ public static class DependencyInjection
        
 
         services.AddScoped<IProjectRepository, ProjectRepository>();
-        
+       
 
         return services;
     }
