@@ -3,6 +3,7 @@ using TaskTracker.Application.Dtos;
 using TaskTracker.Application.Exceptions;
 using TaskTracker.Application.Services;
 using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
+using static TaskTracker.Tests.Services.Tasks.TaskServiceTestHelpers;
 
 namespace TaskTracker.Tests.Services.Tasks
 {
@@ -13,13 +14,13 @@ namespace TaskTracker.Tests.Services.Tasks
         [InlineData(-1)]
         public async Task UpdateAsync_ShouldThrowValidationException_WhenProjectIdIsNotPositive(int projectId)
         {
-            var request = BuildRequest();
+            var request = BuildUpdateRequest();
             request.ProjectId = projectId;
 
-            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
-            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
-            var clockMock = new Mock<IClock>(MockBehavior.Strict);
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var service = CreateServiceWithStrictMocks(
+                out var taskRepoMock,
+                out var projectRepoMock,
+                out var clockMock);
 
             var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.UpdateAsync(33, request, CancellationToken.None));
@@ -34,13 +35,13 @@ namespace TaskTracker.Tests.Services.Tasks
         [InlineData(" ")]
         public async Task UpdateAsync_ShouldThrowValidationException_WhenTitleIsNullEmptyOrWhiteSpace(string? title)
         {
-            var request = BuildRequest();
+            var request = BuildUpdateRequest();
             request.Title = title;
 
-            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
-            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
-            var clockMock = new Mock<IClock>(MockBehavior.Strict);
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var service = CreateServiceWithStrictMocks(
+                 out var taskRepoMock,
+                 out var projectRepoMock,
+                 out var clockMock);
 
             var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.UpdateAsync(22, request, CancellationToken.None));
@@ -52,13 +53,13 @@ namespace TaskTracker.Tests.Services.Tasks
         [Fact]
         public async Task UpdateAsync_ShouldThrowValidationException_WhenTitleExceedsMaxLength()
         {
-            var request = BuildRequest();
+            var request = BuildUpdateRequest();
             request.Title = new string('a', 210);
 
-            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
-            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
-            var clockMock = new Mock<IClock>(MockBehavior.Strict);
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var service = CreateServiceWithStrictMocks(
+                 out var taskRepoMock,
+                 out var projectRepoMock,
+                 out var clockMock);
 
             var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.UpdateAsync(22, request, CancellationToken.None));
@@ -72,13 +73,13 @@ namespace TaskTracker.Tests.Services.Tasks
         [InlineData(999)]
         public async Task UpdateAsync_ShouldThrowValidationException_WhenStatusIsInvalid(int status)
         {
-            var request = BuildRequest();
+            var request = BuildUpdateRequest();
             request.Status = (DomainTaskStatus)status;
 
-            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
-            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
-            var clockMock = new Mock<IClock>(MockBehavior.Strict);
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var service = CreateServiceWithStrictMocks(
+                out var taskRepoMock,
+                out var projectRepoMock,
+                out var clockMock);
 
             var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.UpdateAsync(22, request, CancellationToken.None));
@@ -87,22 +88,15 @@ namespace TaskTracker.Tests.Services.Tasks
             VerifyNoDependencyCalls(taskRepoMock, projectRepoMock, clockMock);
         }
 
-        private static UpdateTaskRequestDto BuildRequest() => new()
+        private static TaskService CreateServiceWithStrictMocks(
+            out Mock<ITaskRepository> taskRepoMock,
+            out Mock<IProjectRepository> projectRepoMock,
+            out Mock<IClock> clockMock)
         {
-            ProjectId = 12,
-            Title = "Ship update flow",
-            Description = "Cover update validation for TaskService",
-            Status = DomainTaskStatus.Done
-        };
-
-        private static void VerifyNoDependencyCalls(
-            Mock<ITaskRepository> taskRepoMock,
-            Mock<IProjectRepository> projectRepoMock,
-            Mock<IClock> clockMock)
-        {
-            taskRepoMock.VerifyNoOtherCalls();
-            projectRepoMock.VerifyNoOtherCalls();
-            clockMock.VerifyNoOtherCalls();
+            taskRepoMock = CreateStrictTaskRepositoryMock();
+            projectRepoMock = CreateStrictProjectRepositoryMock();
+            clockMock = CreateStrictClockMock();
+            return CreateService(taskRepoMock, projectRepoMock, clockMock);
         }
     }
 }

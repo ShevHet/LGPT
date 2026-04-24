@@ -4,6 +4,7 @@ using TaskTracker.Application.Exceptions;
 using TaskTracker.Application.Services;
 using TaskTracker.Domain.Models;
 using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
+using static TaskTracker.Tests.Services.Tasks.TaskServiceTestHelpers;
 
 namespace TaskTracker.Tests.Services.Tasks
 {
@@ -14,12 +15,11 @@ namespace TaskTracker.Tests.Services.Tasks
         {
             var existingTask = BuildExistingTask();
             var originalCreatedAt = existingTask.CreatedAt;
-            var fixedUtcNow = new DateTime(2026, 04, 21, 15, 30, 0, DateTimeKind.Utc);
-            var request = BuildRequest();
+            var request = BuildUpdateRequest();
             var taskRepoMock = CreateTaskRepositoryMockForSuccessfulUpdate(existingTask);
-            var projectRepoMock = CreateProjectRepositoryMockForExistingProject(request.ProjectId);
-            var clockMock = CreateClockMock(fixedUtcNow);
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var projectRepoMock = CreateProjectRepositoryMockWithExistsResult(request.ProjectId, true);
+            var clockMock = CreateClockMock(FixedUtcNow);
+            var service = CreateService(taskRepoMock, projectRepoMock, clockMock);
 
             var result = await service.UpdateAsync(existingTask.Id, request, CancellationToken.None);
 
@@ -29,7 +29,7 @@ namespace TaskTracker.Tests.Services.Tasks
             Assert.Equal(request.Description, existingTask.Description);
             Assert.Equal(request.Status, existingTask.Status);
             Assert.Equal(originalCreatedAt, existingTask.CreatedAt);
-            Assert.Equal(fixedUtcNow, existingTask.UpdatedAt);
+            Assert.Equal(FixedUtcNow, existingTask.UpdatedAt);
         }
 
         [Fact]
@@ -37,11 +37,11 @@ namespace TaskTracker.Tests.Services.Tasks
         {
             var existingTask = BuildExistingTask();
             var fixedUtcNow = new DateTime(2026, 04, 21, 15, 30, 0, DateTimeKind.Utc);
-            var request = BuildRequest();
+            var request = BuildUpdateRequest();
             var taskRepoMock = CreateTaskRepositoryMockForSuccessfulUpdate(existingTask);
-            var projectRepoMock = CreateProjectRepositoryMockForExistingProject(request.ProjectId);
+            var projectRepoMock = CreateProjectRepositoryMockWithExistsResult(request.ProjectId, true);
             var clockMock = CreateClockMock(fixedUtcNow);
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var service = CreateService(taskRepoMock, projectRepoMock, clockMock);
 
             await service.UpdateAsync(existingTask.Id, request, CancellationToken.None);
 
@@ -58,50 +58,24 @@ namespace TaskTracker.Tests.Services.Tasks
         public async Task UpdateAsync_ShouldThrowNotFoundException_WhenTaskDoesNotExist()
         {
             const int missingTaskId = 99;
-            var request = BuildRequest();
-            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
-            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
-            var clockMock = new Mock<IClock>(MockBehavior.Strict);
+            var request = BuildUpdateRequest();
+            var taskRepoMock = CreateStrictTaskRepositoryMock();
+            var projectRepoMock = CreateStrictProjectRepositoryMock();
+            var clockMock = CreateStrictClockMock();
 
             taskRepoMock
                 .Setup(repository => repository.GetByIdAsync(missingTaskId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((TaskItem?)null);
 
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var service = CreateService(taskRepoMock, projectRepoMock, clockMock);
 
             var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => service.UpdateAsync(missingTaskId, request, CancellationToken.None));
 
             Assert.Equal("Task with id = 99 was not found", exception.Message);
             taskRepoMock.Verify(repository => repository.GetByIdAsync(missingTaskId, It.IsAny<CancellationToken>()), Times.Once);
-            taskRepoMock.VerifyNoOtherCalls();
-            projectRepoMock.VerifyNoOtherCalls();
-            clockMock.VerifyNoOtherCalls();
+            VerifyNoDependencyCalls(taskRepoMock, projectRepoMock, clockMock); 
         }
-
-        private static UpdateTaskRequestDto BuildRequest() => new()
-        {
-            ProjectId = 12,
-            Title = "Ship update flow",
-            Description = "Refresh task fields from dto",
-            Status = DomainTaskStatus.Done
-        };
-
-        private static TaskItem BuildExistingTask() => new()
-        {
-            Id = 42,
-            ProjectId = 7,
-            Title = "Draft API contract",
-            Description = "Initial version",
-            Status = DomainTaskStatus.New,
-            CreatedAt = new DateTime(2026, 04, 10, 8, 30, 0, DateTimeKind.Utc),
-            UpdatedAt = new DateTime(2026, 04, 11, 9, 0, 0, DateTimeKind.Utc),
-            Project = new Project
-            {
-                Id = 7,
-                Name = "Website Redesign"
-            }
-        };
 
         private static Mock<ITaskRepository> CreateTaskRepositoryMockForSuccessfulUpdate(TaskItem task)
         {
@@ -116,28 +90,6 @@ namespace TaskTracker.Tests.Services.Tasks
                 .Returns(Task.CompletedTask);
 
             return taskRepoMock;
-        }
-
-        private static Mock<IProjectRepository> CreateProjectRepositoryMockForExistingProject(int projectId)
-        {
-            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
-
-            projectRepoMock
-                .Setup(repository => repository.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
-
-            return projectRepoMock;
-        }
-
-        private static Mock<IClock> CreateClockMock(DateTime utcNow)
-        {
-            var clockMock = new Mock<IClock>(MockBehavior.Strict);
-
-            clockMock
-                .SetupGet(clock => clock.UtcNow)
-                .Returns(utcNow);
-
-            return clockMock;
         }
     }
 }

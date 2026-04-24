@@ -3,6 +3,7 @@ using TaskTracker.Application.Dtos;
 using TaskTracker.Application.Services;
 using TaskTracker.Domain.Models;
 using DomainTaskStatus = TaskTracker.Domain.Models.TaskStatus;
+using static TaskTracker.Tests.Services.Tasks.TaskServiceTestHelpers;
 
 namespace TaskTracker.Tests.Services.Tasks
 {
@@ -11,12 +12,11 @@ namespace TaskTracker.Tests.Services.Tasks
         [Fact]
         public async Task CreateAsync_ShouldReturnCreatedTaskResponse_WhenRequestIsValid()
         {
-            var request = BuildRequest();
-            var fixedUtcNow = new DateTime(2026, 04, 21, 12, 0, 0, DateTimeKind.Utc);
+            var request = BuildCreateRequest();
             var taskRepoMock = CreateTaskRepositoryMockForSuccessfulCreate("Website Redesign", 101);
-            var projectRepoMock = CreateProjectRepositoryMockForExistingProject(request.ProjectId);
-            var clockMock = CreateClockMock(fixedUtcNow);
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var projectRepoMock = CreateProjectRepositoryMockWithExistsResult(request.ProjectId, true);
+            var clockMock = CreateClockMock(FixedUtcNow);
+            var service = CreateService(taskRepoMock, projectRepoMock, clockMock);
 
             var result = await service.CreateAsync(request, CancellationToken.None);
 
@@ -24,20 +24,19 @@ namespace TaskTracker.Tests.Services.Tasks
             Assert.Equal(101, result.Id);
             Assert.Equal(request.ProjectId, result.ProjectId);
             Assert.Equal("Website Redesign", result.ProjectName);
-            Assert.Equal(fixedUtcNow, result.CreatedAt);
-            Assert.Equal(fixedUtcNow, result.UpdatedAt);
+            Assert.Equal(FixedUtcNow, result.CreatedAt);
+            Assert.Equal(FixedUtcNow, result.UpdatedAt);
         }
 
         [Fact]
         public async Task CreateAsync_ShouldMapRequestFieldsToTaskAndResponse_WhenRequestIsValid()
         {
-            var request = BuildRequest();
-            var fixedUtcNow = new DateTime(2026, 04, 21, 12, 0, 0, DateTimeKind.Utc);
+            var request = BuildCreateRequest();
             TaskItem? capturedTask = null;
 
-            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
-            var projectRepoMock = CreateProjectRepositoryMockForExistingProject(request.ProjectId);
-            var clockMock = CreateClockMock(fixedUtcNow);
+            var taskRepoMock = CreateStrictTaskRepositoryMock();
+            var projectRepoMock = CreateProjectRepositoryMockWithExistsResult(request.ProjectId, true);
+            var clockMock = CreateClockMock(FixedUtcNow);
 
             taskRepoMock
                 .Setup(repository => repository.AddAsync(It.IsAny<TaskItem>(), It.IsAny<CancellationToken>()))
@@ -57,7 +56,7 @@ namespace TaskTracker.Tests.Services.Tasks
                 .Setup(repository => repository.SaveChangesAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var service = CreateService(taskRepoMock, projectRepoMock, clockMock);
 
             var result = await service.CreateAsync(request, CancellationToken.None);
 
@@ -66,27 +65,26 @@ namespace TaskTracker.Tests.Services.Tasks
             Assert.Equal(request.Title, capturedTask.Title);
             Assert.Equal(request.Description, capturedTask.Description);
             Assert.Equal(request.Status, capturedTask.Status);
-            Assert.Equal(fixedUtcNow, capturedTask.CreatedAt);
-            Assert.Equal(fixedUtcNow, capturedTask.UpdatedAt);
+            Assert.Equal(FixedUtcNow, capturedTask.CreatedAt);
+            Assert.Equal(FixedUtcNow, capturedTask.UpdatedAt);
 
             Assert.Equal(request.ProjectId, result.ProjectId);
             Assert.Equal(request.Title, result.Title);
             Assert.Equal(request.Description, result.Description);
             Assert.Equal(request.Status, result.Status);
             Assert.Equal("Mobile App", result.ProjectName);
-            Assert.Equal(fixedUtcNow, result.CreatedAt);
-            Assert.Equal(fixedUtcNow, result.UpdatedAt);
+            Assert.Equal(FixedUtcNow, result.CreatedAt);
+            Assert.Equal(FixedUtcNow, result.UpdatedAt);
         }
 
         [Fact]
         public async Task CreateAsync_ShouldCallAddAndSaveOnce_WhenRequestIsValid()
         {
-            var request = BuildRequest();
-            var fixedUtcNow = new DateTime(2026, 04, 21, 12, 0, 0, DateTimeKind.Utc);
+            var request = BuildCreateRequest();
             var taskRepoMock = CreateTaskRepositoryMockForSuccessfulCreate("Data Platform");
-            var projectRepoMock = CreateProjectRepositoryMockForExistingProject(request.ProjectId);
-            var clockMock = CreateClockMock(fixedUtcNow);
-            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
+            var projectRepoMock = CreateProjectRepositoryMockWithExistsResult(request.ProjectId, true);
+            var clockMock = CreateClockMock(FixedUtcNow);
+            var service = CreateService(taskRepoMock, projectRepoMock, clockMock);
 
             await service.CreateAsync(request, CancellationToken.None);
 
@@ -94,18 +92,8 @@ namespace TaskTracker.Tests.Services.Tasks
             clockMock.VerifyGet(clock => clock.UtcNow, Times.Once);
             taskRepoMock.Verify(repository => repository.AddAsync(It.IsAny<TaskItem>(), It.IsAny<CancellationToken>()), Times.Once);
             taskRepoMock.Verify(repository => repository.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-            taskRepoMock.VerifyNoOtherCalls();
-            projectRepoMock.VerifyNoOtherCalls();
-            clockMock.VerifyNoOtherCalls();
+            VerifyNoDependencyCalls(taskRepoMock, projectRepoMock, clockMock);
         }
-
-        private static CreateTaskRequestDto BuildRequest() => new()
-        {
-            ProjectId = 7,
-            Title = "Implement unit tests",
-            Description = "Cover create happy-path for TaskService",
-            Status = DomainTaskStatus.InProgress
-        };
 
         private static Mock<ITaskRepository> CreateTaskRepositoryMockForSuccessfulCreate(
             string projectName,
@@ -131,28 +119,6 @@ namespace TaskTracker.Tests.Services.Tasks
                 .Returns(Task.CompletedTask);
 
             return taskRepoMock;
-        }
-
-        private static Mock<IProjectRepository> CreateProjectRepositoryMockForExistingProject(int projectId)
-        {
-            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
-
-            projectRepoMock
-                .Setup(repository => repository.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
-
-            return projectRepoMock;
-        }
-
-        private static Mock<IClock> CreateClockMock(DateTime utcNow)
-        {
-            var clockMock = new Mock<IClock>(MockBehavior.Strict);
-
-            clockMock
-                .SetupGet(clock => clock.UtcNow)
-                .Returns(utcNow);
-
-            return clockMock;
         }
     }
 }
