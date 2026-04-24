@@ -1,4 +1,4 @@
-﻿using TaskTracker.Domain.Models;
+using TaskTracker.Domain.Models;
 
 namespace TaskTracker.Application.Services
 {

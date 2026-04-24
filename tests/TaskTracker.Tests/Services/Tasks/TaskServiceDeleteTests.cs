@@ -1,5 +1,4 @@
-﻿using Moq;
-using Newtonsoft.Json.Serialization;
+using Moq;
 using TaskTracker.Application.Exceptions;
 using TaskTracker.Application.Services;
 using TaskTracker.Domain.Models;
@@ -12,58 +11,61 @@ namespace TaskTracker.Tests.Services.Tasks
         [Fact]
         public async Task DeleteAsync_ShouldCallRemove_WhenTaskExists()
         {
-            //Arrange
             var existingTask = BuildExistingTask();
-            var repoMock = CreateRepositoryMockForSuccessfulDelete(existingTask);
-            var service = new TaskService(repoMock.Object);
+            var taskRepoMock = CreateRepositoryMockForSuccessfulDelete(existingTask);
+            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
+            var clockMock = new Mock<IClock>(MockBehavior.Strict);
+            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
 
-            //Act
             var result = await service.DeleteAsync(existingTask.Id, CancellationToken.None);
 
-            //Assert
             Assert.True(result);
-            repoMock.Verify(r => r.Remove(existingTask), Times.Once);
+            taskRepoMock.Verify(repository => repository.Remove(existingTask), Times.Once);
+            projectRepoMock.VerifyNoOtherCalls();
+            clockMock.VerifyNoOtherCalls();
         }
 
         [Fact]
         public async Task DeleteAsync_ShouldCallSaveChangesOnce_WhenTaskExists()
         {
-            //Arrange
             var existingTask = BuildExistingTask();
-            var repoMock = CreateRepositoryMockForSuccessfulDelete(existingTask);
-            var service = new TaskService(repoMock.Object);
+            var taskRepoMock = CreateRepositoryMockForSuccessfulDelete(existingTask);
+            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
+            var clockMock = new Mock<IClock>(MockBehavior.Strict);
+            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
 
-            //Act
             await service.DeleteAsync(existingTask.Id, CancellationToken.None);
 
-            //Assert
-            repoMock.Verify(r=>r.GetByIdAsync(existingTask.Id, It.IsAny<CancellationToken>()), Times.Once);
-            repoMock.Verify(r=>r.Remove(existingTask), Times.Once);
-            repoMock.Verify(r=>r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-            repoMock.VerifyNoOtherCalls();
+            taskRepoMock.Verify(repository => repository.GetByIdAsync(existingTask.Id, It.IsAny<CancellationToken>()), Times.Once);
+            taskRepoMock.Verify(repository => repository.Remove(existingTask), Times.Once);
+            taskRepoMock.Verify(repository => repository.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            taskRepoMock.VerifyNoOtherCalls();
+            projectRepoMock.VerifyNoOtherCalls();
+            clockMock.VerifyNoOtherCalls();
         }
 
         [Fact]
         public async Task DeleteAsync_ShouldThrowNotFoundException_WhenTaskDoesNotExist()
         {
-            //Arrange
             const int missingTaskId = 77;
-            var repoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
+            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
+            var projectRepoMock = new Mock<IProjectRepository>(MockBehavior.Strict);
+            var clockMock = new Mock<IClock>(MockBehavior.Strict);
 
-            repoMock
-                .Setup(r => r.GetByIdAsync(missingTaskId, It.IsAny<CancellationToken>()))
+            taskRepoMock
+                .Setup(repository => repository.GetByIdAsync(missingTaskId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((TaskItem?)null);
 
-            var service = new TaskService(repoMock.Object);
+            var service = new TaskService(taskRepoMock.Object, projectRepoMock.Object, clockMock.Object);
 
-            //Act
-            var exception =  await Assert.ThrowsAsync<NotFoundException>( 
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => service.DeleteAsync(missingTaskId, CancellationToken.None));
 
-            //Assert
             Assert.Equal("Task with id = 77 was not found", exception.Message);
-            repoMock.Verify(r=>r.GetByIdAsync(missingTaskId, It.IsAny<CancellationToken>()), Times.Once);
-            repoMock.VerifyNoOtherCalls();
+            taskRepoMock.Verify(repository => repository.GetByIdAsync(missingTaskId, It.IsAny<CancellationToken>()), Times.Once);
+            taskRepoMock.VerifyNoOtherCalls();
+            projectRepoMock.VerifyNoOtherCalls();
+            clockMock.VerifyNoOtherCalls();
         }
 
         private static TaskItem BuildExistingTask() => new()
@@ -84,20 +86,20 @@ namespace TaskTracker.Tests.Services.Tasks
 
         private static Mock<ITaskRepository> CreateRepositoryMockForSuccessfulDelete(TaskItem task)
         {
-            var repoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
+            var taskRepoMock = new Mock<ITaskRepository>(MockBehavior.Strict);
 
-            repoMock
-                .Setup(r=>r.GetByIdAsync(task.Id, It.IsAny<CancellationToken>()))
+            taskRepoMock
+                .Setup(repository => repository.GetByIdAsync(task.Id, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(task);
 
-            repoMock
-                .Setup(r => r.Remove(task));
+            taskRepoMock
+                .Setup(repository => repository.Remove(task));
 
-            repoMock
-                .Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            taskRepoMock
+                .Setup(repository => repository.SaveChangesAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
-            return repoMock;
+            return taskRepoMock;
         }
     }
 }
