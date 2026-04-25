@@ -54,24 +54,45 @@ dotnet test tests/TaskTracker.Tests/TaskTracker.Tests.csproj
 
 При успешном запуске команда завершится без ошибок и покажет, что все тесты прошли.
 
+## Основные эндпоинты
 
+### Projects
 
-## Week 2 — HTTP/REST cheat sheet
+- `GET /projects`
+- `GET /projects/{id}`
+- `POST /projects`
+- `PUT /projects/{id}`
+- `DELETE /projects/{id}`
 
-### Methods
-- GET — read data
-- POST — create
-- PUT — replace
-- PATCH — partial update
-- DELETE — delete
+### Tasks
 
-### Status codes used in this project
-- 200 OK — success with response body
-- 201 Created — resource created (POST)
-- 204 No Content — success without body (DELETE/PUT)
-- 400 Bad Request — validation errors
-- 404 Not Found — resource not found
+- `GET /tasks`
+- `GET /tasks/{id}`
+- `POST /tasks`
+- `PUT /tasks/{id}`
+- `DELETE /tasks/{id}`
 
+У задач есть статусы:
 
+- `New`
+- `InProgress`
+- `Done`
 
+Пример запроса с фильтрацией:
 
+```text
+GET /tasks?page=1&pageSize=10&status=Done&projectId=1
+```
+
+## Структура проекта
+
+- `src/TaskTracker.Api` - контроллеры, middleware, swagger
+- `src/TaskTracker.Application` - сервисы, DTO, бизнес-логика
+- `src/TaskTracker.Domain` - модели
+- `src/TaskTracker.Infrastructure` - EF Core, репозитории, миграции
+- `tests/TaskTracker.Tests` - тесты
+- `database` - SQL-скрипты и заметки по БД
+
+## Коротко
+
+Проект учебный, делался для практики с Web API, слоями приложения, базой данных и тестами.
