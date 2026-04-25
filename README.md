@@ -1,50 +1,58 @@
-# \# TaskTracker (.NET)
+# TaskTracker (.NET)
 
-# 
+Учебный репозиторий для практики Git и работы с .NET Web API.
 
-# Учебный репозиторий для практики Git (ветки/PR/конфликты) и каркаса .NET решения.
+## Требования
 
-# 
+- .NET SDK 9.0
+- Git
 
-# \## Требования
+Проверить установленные версии:
 
-# \- .NET SDK 9.0 (или версия, которая у тебя установлена)
+```bash
+dotnet --version
+git --version
+```
 
-# \- Git
+## Как собрать проект
 
-# 
+В корне репозитория:
 
-# Проверить:
+```bash
+dotnet build
+```
 
-# \- dotnet --version
+## Как запустить API
 
-# \- git --version
+```bash
+dotnet run --project src/TaskTracker.Api
+```
 
-# 
+После запуска открой Swagger:
 
-# \## Как собрать проект
+```text
+https://localhost:xxxx/swagger
+```
 
-# В корне репозитория:
+Точный порт будет написан в консоли.
 
-# dotnet build
+## Как запустить тесты
 
-# 
+Тесты находятся в `tests/TaskTracker.Tests`. Сейчас это unit-тесты сервисного слоя.
 
-# \## Как запустить тесты
+Все тесты запускаются из корня репозитория:
 
-# dotnet test
+```bash
+dotnet test
+```
 
-# 
+При необходимости можно запустить тестовый проект напрямую:
 
-# \## Как запустить API
+```bash
+dotnet test tests/TaskTracker.Tests/TaskTracker.Tests.csproj
+```
 
-# dotnet run --project src/TaskTracker.Api
-
-# 
-
-# После запуска открой браузер:
-
-# \- https://localhost:xxxx/swagger (порт будет написан в консоли)
+При успешном запуске команда завершится без ошибок и покажет, что все тесты прошли.
 
 
 

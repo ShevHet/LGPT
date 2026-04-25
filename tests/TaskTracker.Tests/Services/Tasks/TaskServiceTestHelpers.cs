@@ -9,7 +9,7 @@ namespace TaskTracker.Tests.Services.Tasks
 {
     public class TaskServiceTestHelpers
     {
-        public static readonly DateTime FixedUtcNow = new(2026, 04, 21, 12, 0, 0, DateTimeKind.Utc);;
+        public static readonly DateTime FixedUtcNow = new(2026, 04, 21, 12, 0, 0, DateTimeKind.Utc);
 
         public static CreateTaskRequestDto BuildCreateRequest(
             int projectId = 7,
