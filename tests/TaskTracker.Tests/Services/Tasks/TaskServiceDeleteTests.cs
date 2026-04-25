@@ -21,7 +21,9 @@ namespace TaskTracker.Tests.Services.Tasks
             var result = await service.DeleteAsync(existingTask.Id, CancellationToken.None);
 
             Assert.True(result);
+            taskRepoMock.Verify(repository => repository.GetByIdAsync(existingTask.Id, It.IsAny<CancellationToken>()), Times.Once);
             taskRepoMock.Verify(repository => repository.Remove(existingTask), Times.Once);
+            taskRepoMock.Verify(repository => repository.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
             VerifyNoDependencyCalls(taskRepoMock, projectRepoMock, clockMock);
         }
 

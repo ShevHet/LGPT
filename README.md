@@ -1,73 +1,58 @@
-# TaskTracker
+# TaskTracker (.NET)
 
-Небольшой учебный проект на ASP.NET Core.
+Учебный репозиторий для практики Git и работы с .NET Web API.
 
-Это API для работы с проектами и задачами. Тут можно создавать проекты, добавлять в них задачи, менять статус и получать списки через HTTP-запросы.
+## Требования
 
-Без какой-то особой магии, просто нормальный CRUD-проект для практики.
+- .NET SDK 9.0
+- Git
 
-## Что тут есть
-
-- проекты
-- задачи
-- фильтрация задач по статусу и проекту
-- Swagger для проверки запросов
-- тесты на сервисы
-
-## Что использовалось
-
-- .NET 9
-- ASP.NET Core Web API
-- Entity Framework Core
-- PostgreSQL
-- xUnit
-- Moq
-
-## Как запустить
-
-Сначала нужен `PostgreSQL` и `.NET SDK 9.0`.
-
-Потом надо прописать строку подключения в `src/TaskTracker.Api/appsettings.json` или в `src/TaskTracker.Api/appsettings.Development.json`.
-
-Пример:
-
-```json
-"ConnectionStrings": {
-  "TaskTrackerDb": "Host=localhost;Port=5432;Database=tasktracker;Username=postgres;Password=1234"
-}
-```
-
-После этого применить миграции:
+Проверить установленные версии:
 
 ```bash
-dotnet ef database update --project src/TaskTracker.Infrastructure --startup-project src/TaskTracker.Api
+dotnet --version
+git --version
 ```
 
-Если `dotnet ef` не найден, значит надо поставить tool:
+## Как собрать проект
+
+В корне репозитория:
 
 ```bash
-dotnet tool install --global dotnet-ef
+dotnet build
 ```
 
-Дальше можно запускать API:
+## Как запустить API
 
 ```bash
 dotnet run --project src/TaskTracker.Api
 ```
 
-После запуска обычно открывается Swagger, либо можно зайти вручную по адресу типа:
+После запуска открой Swagger:
 
 ```text
-https://localhost:5001/swagger
+https://localhost:xxxx/swagger
 ```
 
-Точный порт будет в консоли при запуске.
+Точный порт будет написан в консоли.
 
 ## Как запустить тесты
+
+Тесты находятся в `tests/TaskTracker.Tests`. Сейчас это unit-тесты сервисного слоя.
+
+Все тесты запускаются из корня репозитория:
 
 ```bash
 dotnet test
 ```
+
+При необходимости можно запустить тестовый проект напрямую:
+
+```bash
+dotnet test tests/TaskTracker.Tests/TaskTracker.Tests.csproj
+```
+
+При успешном запуске команда завершится без ошибок и покажет, что все тесты прошли.
 
 ## Основные эндпоинты
 
