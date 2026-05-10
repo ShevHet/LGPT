@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-﻿namespace TaskTracker.Tests.Integration
-{
-    public class TaskApiErrorTests
-    {
-=======
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
-
 
 namespace TaskTracker.Tests.Integration
 {
@@ -18,7 +11,7 @@ namespace TaskTracker.Tests.Integration
         public TaskApiErrorTests(ApiFactory factory)
         {
             _factory = factory;
-            _client = new HttpClient();
+            _client = factory.CreateClient();
         }
 
         [Fact]
@@ -35,6 +28,14 @@ namespace TaskTracker.Tests.Integration
             });
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+
+            Assert.NotNull(error);
+            Assert.False(string.IsNullOrWhiteSpace(error!.TraceId));
+            Assert.Equal("Validation failed", error.Message);
+            Assert.NotNull(error.Errors);
+            Assert.NotEmpty(error.Errors);
         }
 
         [Fact]
@@ -46,6 +47,10 @@ namespace TaskTracker.Tests.Integration
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
->>>>>>> 2244c33 (Добавлены интеграционные API-тесты для 400 и 404)
+
+        private sealed record ApiErrorResponse(
+            string TraceId,
+            string Message,
+            Dictionary<string, string[]>? Errors);
     }
 }

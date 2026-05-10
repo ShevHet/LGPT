@@ -4,6 +4,9 @@ using TaskTracker.Application;
 using TaskTracker.Infrastructure;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
+using TaskTracker.Api.Errors;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +18,25 @@ builder.Services
     })
     .ConfigureApiBehaviorOptions(options =>
     {
-        options.SuppressModelStateInvalidFilter = false;
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(entry => entry.Value?.Errors.Count > 0)
+                .ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value!.Errors
+                    .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage)
+                        ? "Invalid value"
+                        : error.ErrorMessage)
+                    .ToArray());
+
+            var paylad = new ApiErrorResponse(
+                TraceId: context.HttpContext.TraceIdentifier,
+                Message: "Validation failed",
+                Errors: errors);
+
+            return new BadRequestObjectResult(paylad);
+        }
     });
 
 builder.Services.Configure<TaskTrackerOptions>(

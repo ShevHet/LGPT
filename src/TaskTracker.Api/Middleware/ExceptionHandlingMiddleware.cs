@@ -26,7 +26,7 @@ public sealed class ExceptionHandlingMiddleware
             var traceId = context.TraceIdentifier;
             var(statusCode, message, errors) = MapException(ex);
 
-            if(statusCode >= 500)
+            if(statusCode >= StatusCodes.Status500InternalServerError)
                 _logger.LogError(ex, "Unhandled exception. TraceId={TraceId}", traceId);
 
             else
@@ -41,31 +41,27 @@ public sealed class ExceptionHandlingMiddleware
                 Errors: errors
             );
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+            await context.Response.WriteAsJsonAsync(payload);
         }
     }
 
-    public (int statusCode, string message, Dictionary<string, string[]>? errors)
+    public static (int statusCode, string message, Dictionary<string, string[]>? errors)
         MapException(Exception ex)
     {
-        if (ex is OperationCanceledException or TaskCanceledException)
-            return (499, "Request was cancelled by client", null);
-
-        if (ex is ValidationException ve)
-            return (StatusCodes.Status400BadRequest, ve.Message, null); 
-
-        if(ex is NotFoundException nf)        
-            return (StatusCodes.Status404NotFound, nf.Message, null);
-
-        if (ex is BadHttpRequestException)
-            return (StatusCodes.Status400BadRequest, "Invalid HTTP request", null);
-
-        if (ex is System.Text.Json.JsonException)
-            return (StatusCodes.Status400BadRequest, "Invalid JSON payload", null);
-
-        if (ex is ConflictException ce)
-            return (StatusCodes.Status409Conflict, ce.Message, null);
-
-        return (StatusCodes.Status500InternalServerError, "Unexpected error", null);
+        return ex switch
+        {
+            ValidationException validationException =>
+                (StatusCodes.Status400BadRequest, validationException.Message, null),
+            NotFoundException notFoundException =>
+                (StatusCodes.Status404NotFound, notFoundException.Message, null),
+            ConflictException conflictException =>
+                (StatusCodes.Status409Conflict, conflictException.Message, null),
+            BadHttpRequestException =>
+                (StatusCodes.Status400BadRequest, "Invalid HTTP request", null),
+            System.Text.Json.JsonException =>
+                (StatusCodes.Status400BadRequest, "Invalid JSON paylad", null),
+            OperationCanceledException or TaskCanceledException =>
+                (StatusCodes.Status500InternalServerError, "Unexpected error", null)
+        };
     }
 }
